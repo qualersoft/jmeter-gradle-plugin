@@ -1,0 +1,81 @@
+name: "Publish new release"
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  release:
+    name: Create new release
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true #only merged pull requests must trigger this job
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract version from branch name (for release branches)
+        if: startsWith(github.event.pull_request.head.ref, 'release/')
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#release/}
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from branch name (for hotfix branches)
+        if: startsWith(github.event.pull_request.head.ref, 'hotfix/')
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#hotfix/}
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: thomaseizinger/create-release@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          tag_name: v${{ env.RELEASE_VERSION }}
+          name: ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+  updateDevelop:
+    name: "Reintegrate to develop"
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Publish artifact to GitHub
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.actor }}
+        run: ./gradlew publish
+
+      - name: Publish to gradle
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: ./gradlew publishPlugins
+
+      - name: prepare merge
+        run: |
+          git config user.name "${{ github.actor }} action"
+          git config user.email "noreply@github.com"
+          git fetch --all --recurse-submodules=no --progress --prune
+          git checkout -b develop origin/develop
+          git merge main --allow-unrelated-histories --strategy=recursive -Xtheirs --no-commit
+
+      - name: Create next version
+        run: ./gradlew updateVersion -PnewVersion=snapshot
+
+      - name: Commit changes
+        run: |
+          git add gradle.properties
+          git commit --message "Reintegrate master to develop + version bump"
+
+      - name: Push to develop
+        run: git push

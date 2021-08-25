@@ -1,0 +1,219 @@
+name: "Build"
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - issues/**
+
+jobs:
+  init:
+    name: "Init"
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v2
+        id: checkout
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      - name: "Gradle cache"
+        id: gradle-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - name: "Workspace cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-sources-${{ github.run_id }}
+      - name: "get fossa"
+        run: |
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh > install.sh
+          sudo bash install.sh -b .
+      - name: init gradle
+        if: steps.gradle-cache.outputs.cache-hit != 'true'
+        run: ./gradlew --no-daemon
+
+  staticDetektCheck:
+    name: "Detekt - static check"
+    runs-on: ubuntu-latest
+    needs: init
+    steps:
+      - name: "Load sources"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-sources-${{ github.run_id }}
+      - name: "Load gradle cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - name: "Detekt"
+        run: ${{ github.workspace }}/gradlew detekt --no-daemon
+
+  staticFossaCheck:
+    name: "Fossa licence analyze - static check"
+    runs-on: ubuntu-latest
+    needs: init
+    steps:
+      - name: "Load sources"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-sources-${{ github.run_id }}
+      - name: "Fossa analyze"
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: ${{ github.workspace }}/fossa analyze --branch ${{ needs.init.outputs.branch }}
+
+  compile:
+    runs-on: ubuntu-latest
+    needs: init
+    steps:
+      - name: "Load sources"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-sources-${{ github.run_id }}
+      - name: "Load gradle cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-compile-${{ github.run_id }}
+      - name: "Compile"
+        run: ${{ github.workspace }}/gradlew classes --no-daemon
+
+  test:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - name: "Load compile cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-compile-${{ github.run_id }}
+      - name: "Load gradle cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - name: "Unit test cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-test-${{ github.run_id }}
+      - name: "Unit test"
+        run: ${{ github.workspace }}/gradlew test --no-daemon
+
+  funcTest:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - name: "Load compile cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-compile-${{ github.run_id }}
+      - name: "Load gradle cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - name: "Functional test cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-funcTest-${{ github.run_id }}
+      - name: "Functional tests"
+        run: ${{ github.workspace }}/gradlew functionalTest --no-daemon
+
+  licenceCheck:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - name: "Load sources"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-sources-${{ github.run_id }}
+      - name: "Fossa check license"
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: ${{ github.workspace }}/fossa test
+
+  report:
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - funcTest
+    steps:
+      - name: "Load test cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-test-${{ github.run_id }}
+      - name: "Load functional test cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-functest-${{ github.run_id }}
+      - name: "Generate Report"
+        run: ${{ github.workspace }}/gradlew jacocoMergedReport --no-daemon
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: build
+
+      - name: "Upload Report"
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: build/test-results/**/*.xml
+
+      - name: "Publish Report"
+        run: bash <(curl -s https://codecov.io/bash) -B '${{ needs.init.outputs.branch }}' -f "./build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
+
+  publishSnapshot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.ref == 'develop'
+    needs:
+      - report
+      - licenceCheck
+    steps:
+      - name: "Load compile cache"
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/**
+          key: ${{ runner.os }}-compile-${{ github.run_id }}
+      - name: "Load gradle cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/wrapper/dists/**
+          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+      - name: "Publish"
+        env:
+          USERNAME: ${{ github.actor }}
+          TOKEN: ${{ github.token }}
+        run: ${{ github.workspace }}/gradlew publish --no-daemon
