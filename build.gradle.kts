@@ -124,8 +124,8 @@ publishing {
       name = "GitHubPackages"
       url = uri("https://maven.pkg.github.com/qualersoft/jmeter-gradle-plugin")
       credentials {
-        username = project.findProperty("publish.gh.mathze.gpr.usr") as String? ?: System.getenv("USERNAME")
-        password = project.findProperty("publish.gh.mathze.gpr.key") as String? ?: System.getenv("TOKEN")
+        username = project.findProperty("gh.qualersoft.publish.gpr.usr") as String? ?: System.getenv("USERNAME")
+        password = project.findProperty("gh.qualersoft.publish.gpr.key") as String? ?: System.getenv("TOKEN")
       }
     }
   }
