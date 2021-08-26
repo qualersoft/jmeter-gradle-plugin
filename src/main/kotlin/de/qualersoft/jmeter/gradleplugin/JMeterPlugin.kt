@@ -18,7 +18,7 @@ private const val EXTENSION_NAME = "jmeter"
 
 const val JMETER_EXEC = "jmeterExec"
 const val JMETER_EXTENSION = "jmeterExtension"
-const val JMETER_TOOL = "jmeterTools"
+const val JMETER_TOOL = "jmeterTool"
 
 class JMeterPlugin : Plugin<Project> {
 
@@ -47,15 +47,15 @@ class JMeterPlugin : Plugin<Project> {
     jmExt.tool.applyTo(execConf)
 
     val jmComp = project.configurations.maybeCreate(JMETER_EXTENSION)
-    jmComp.isVisible = false
+    jmComp.description = "JMeter extensions like 3rd party plugins. See `jmCoreExt` for easy adding jmeter extensions."
+    jmComp.isVisible = true
     jmComp.isCanBeConsumed = false
     jmComp.isCanBeResolved = true
 
-    //jmComp.extendsFrom(project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME))
-
     jmExt.tool.applyApacheComponents(jmComp)
 
-    project.configurations.maybeCreate(JMETER_TOOL)
+    val tools = project.configurations.maybeCreate(JMETER_TOOL)
+    tools.description = "Additional tool libraries that can be used within jmeter scripts. E.g. apache-commons"
   }
 
   private fun registerTasks(project: Project) {
@@ -84,6 +84,9 @@ class JMeterPlugin : Plugin<Project> {
   }
 }
 
+/**
+ * Main 
+ */
 internal fun Project.jmeter(): JMeterExtension = extensions.getByName(EXTENSION_NAME) as? JMeterExtension
   ?: throw IllegalStateException("$EXTENSION_NAME is not of the correct type")
 
@@ -93,9 +96,10 @@ internal fun Project.jmeter(): JMeterExtension = extensions.getByName(EXTENSION_
  * @param module The name of the apache component module. The `ApacheJMeter_` part will be prepended automatically.
  * @param version The version of the module, if omitted `jmeter.tool.version` will be used.
  */
-internal fun DependencyHandler.jmCoreExt(module: String, version: String? = null): Dependency? {
-  val jmTool = extensions.getByType(JMeterExtension::class.java).tool
-  return add(JMETER_EXTENSION, jmTool.createComponentDependency(module, version))?.also {
-    jmTool.applyBomWorkaround(it)
-  }
-}
+// TODO did not work, atm `extensions` is not aware of our extension
+//fun DependencyHandler.jmCoreExt(module: String, version: String? = null): Dependency {
+//  val jmTool = extensions.getByType(JMeterExtension::class.java).tool
+//  return create(jmTool.createComponentDependency(module, version)).apply { 
+//    jmTool.applyBomWorkaround(this)
+//  }
+//}

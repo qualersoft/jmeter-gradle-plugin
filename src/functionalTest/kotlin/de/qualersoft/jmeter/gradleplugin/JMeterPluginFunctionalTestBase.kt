@@ -20,7 +20,9 @@ open class JMeterPluginFunctionalTestBase {
   @Tag("kotlin")
   annotation class KotlinTag
 
-  protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
+  protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder()
+    .parentFolder(File("build/tmp/functionalTest").absoluteFile)
+    .assureDeletion().build()
 
   /**
    * Meant to be overridden if required.
@@ -44,7 +46,9 @@ open class JMeterPluginFunctionalTestBase {
     result.output shouldContain "BUILD SUCCESSFUL"
   }
 
-  private fun createRunner() = GradleRunner.create().withProjectDir(testProjectDir.root)
+  private fun createRunner() = GradleRunner.create()
+    .withProjectDir(testProjectDir.root)
+    .forwardOutput()
     // Attention: do not enable debug! Details see https://github.com/gradle/gradle/issues/6862
     .withPluginClasspath()
     .withTestKitDir(testProjectDir.newFolder())
@@ -63,6 +67,9 @@ open class JMeterPluginFunctionalTestBase {
     file.inputStream().use { input ->
       result.outputStream().use { output -> input.copyTo(output) }
     }
+    
+    val settings = testProjectDir.newFile("settings$ext")
+    settings.writeText("")
 
     // copy rest of data to temp dir
     rootFolder()?.also {
@@ -83,7 +90,11 @@ open class JMeterPluginFunctionalTestBase {
     return result
   }
 
-  private fun InputStream.toFile(file: File) {
+  protected fun File.copyTo(file: File) {
+    this.inputStream().toFile(file)
+  }
+
+  protected fun InputStream.toFile(file: File) {
     use { input ->
       file.outputStream().use { input.copyTo(it) }
     }

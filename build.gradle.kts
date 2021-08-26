@@ -1,21 +1,20 @@
 plugins {
-  // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+  // implementation
   `java-gradle-plugin`
-  // Apply the Kotlin JVM plugin to add support for Kotlin.
-  kotlin("jvm") version "1.5.21"
+  kotlin("jvm") version "1.5.30"
 
   // quality
   jacoco
-  id("io.gitlab.arturbosch.detekt") version "1.17.1"
+  id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
   // documentation
-  id("org.jetbrains.dokka") version "1.4.32"
+  id("org.jetbrains.dokka") version "1.5.0"
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
   `maven-publish`
   id("com.gradle.plugin-publish") version "0.15.0"
-  id("com.github.ben-manes.versions") version "0.38.0"
+  id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 group = "de.qualersoft"
@@ -31,13 +30,15 @@ dependencies {
   // Use the Kotlin JDK 8 standard library.
   implementation(kotlin("stdlib-jdk8"))
 
-  // Use the Kotlin test library.
-  testImplementation(kotlin("test"))
-  // Use the Kotlin JUnit integration.
+  testImplementation(platform("org.junit:junit-bom:5.7.2"))
+  testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
+
   testImplementation(kotlin("test-junit5"))
 
-  testImplementation(group = "io.kotest", name = "kotest-runner-junit5", version = "4.4.3")
-  testImplementation(group = "io.kotest", name = "kotest-assertions-core-jvm", version = "4.4.3")
+  testImplementation(group = "io.kotest", name = "kotest-runner-junit5", version = "4.6.2")
+  testImplementation(group = "io.kotest", name = "kotest-assertions-core-jvm", version = "4.6.2")
+
+  testRuntimeOnly(kotlin("script-runtime"))
 }
 
 gradlePlugin {
@@ -49,6 +50,7 @@ gradlePlugin {
     displayName = "jmeter gradle plugin"
     description = "Plugin to execute JMeter tests."
   }
+  testSourceSets(*sourceSets.filter { it.name.contains("test", true) }.toTypedArray())
 }
 
 pluginBundle {
@@ -65,7 +67,7 @@ detekt {
   allRules = false
   buildUponDefaultConfig = true
   config = files("$projectDir/detekt.yml")
-  input = files("src/main/kotlin")
+  source = files("src/main/kotlin")
 
   reports {
     html.enabled = true
@@ -100,9 +102,13 @@ tasks {
   this.detekt {
     // Target version of the generated JVM bytecode. It is used for type resolution.
     this.jvmTarget = JavaVersion.VERSION_11.toString()
-    
+
   }
   
+  withType<Test> {
+    useJUnitPlatform()
+  }
+
   check {
     // Run the functional tests as part of `check`
     dependsOn(functionalTest)
