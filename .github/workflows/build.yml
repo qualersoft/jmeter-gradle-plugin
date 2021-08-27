@@ -19,19 +19,13 @@ jobs:
       - name: Extract branch name
         id: extract_branch
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      - name: "Gradle cache"
-        id: gradle-cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
-      - name: "Workspace cache"
+
+      - name: "Source cache"
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-sources-${{ github.run_id }}
+
       - name: "get fossa"
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh > install.sh
@@ -51,21 +45,16 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-sources-${{ github.run_id }}
 
-      - name: "Load gradle cache"
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
-
       - name: "Detekt"
-        run: ${{ github.workspace }}/gradlew detekt --no-daemon
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: |
+            detekt
 
       - name: "Upload detekt report"
         uses: actions/upload-artifact@v2
         with:
-          name: unittestreport
+          name: Detekt report
           path: build/reports/detekt
 
   staticFossaCheck:
@@ -94,21 +83,16 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-sources-${{ github.run_id }}
 
-      - name: "Load gradle cache"
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
-
       - uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Compile"
-        run: ${{ github.workspace }}/gradlew classes --no-daemon
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: |
+            classes
 
   unitTest:
     runs-on: ubuntu-latest
@@ -120,14 +104,6 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
-      - name: "Load gradle cache"
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
-
       - name: "Unit test cache"
         uses: actions/cache@v2
         with:
@@ -135,12 +111,18 @@ jobs:
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
       - name: "Unit test"
-        run: ${{ github.workspace }}/gradlew test jacocoTestReport --no-daemon
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: |
+            test
+            jacocoTestReport
+#        run: ${{ github.workspace }}/gradlew test jacocoTestReport --no-daemon
 
       - name: "Publish Unit Test Results"
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
+          check_name: "Unit test results"
           files: test-results/**/*.xml
 
       - name: "Upload unit test report"
@@ -160,14 +142,6 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
-      - name: "Load gradle cache"
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
-
       - name: "Functional test cache"
         uses: actions/cache@v2
         with:
@@ -175,13 +149,17 @@ jobs:
           key: ${{ runner.os }}-funcTest-${{ github.run_id }}
 
       - name: "Functional tests"
-        run: ${{ github.workspace }}/gradlew functionalTest jacocoFunctionalTestReport --no-daemon
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: |
+            functionalTest
+            jacocoFunctionalTestReport
 
       - name: "Publish functional test results"
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          check_name: "functional test results"
+          check_name: "Functional test results"
           files: build/test-results/functionalTest/*.xml
 
       - name: "Upload functional test report"
@@ -216,6 +194,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
+
       - name: "Load functional test cache"
         uses: actions/cache@v2
         with:
@@ -250,15 +229,12 @@ jobs:
         with:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
-      - name: "Load gradle cache"
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/wrapper/dists/**
-          key: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-${{ hashFiles('./*.gradle', './*.gradle.kts', './gradle.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
+
       - name: "Publish"
+        uses: burrunan/gradle-cache-action@v1
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ github.token }}
-        run: ${{ github.workspace }}/gradlew publish --no-daemon
+        with:
+          arguments: |
+            publish
