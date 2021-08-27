@@ -21,7 +21,7 @@ open class JMeterPluginFunctionalTestBase {
   annotation class KotlinTag
 
   protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder()
-    .parentFolder(File("build/tmp/functionalTest").absoluteFile)
+    .parentFolder(File("./build/tmp/functionalTest").absoluteFile)
     .assureDeletion().build()
 
   /**

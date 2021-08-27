@@ -36,7 +36,7 @@ class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
   }
 
   fun copyJmxToDefaultLocation() {
-    val destFldr = testProjectDir.newFolder("/src/test/jmeter")
+    val destFldr = testProjectDir.newFolder("./src/test/jmeter")
     destFldr.mkdirs()
     val resource = File(JMeterPluginFunctionalTest::class.java.classLoader.getResource("Test.jmx")!!.file)
     val destFile = destFldr.resolve(resource.name)
