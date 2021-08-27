@@ -116,14 +116,13 @@ jobs:
           arguments: |
             test
             jacocoTestReport
-#        run: ${{ github.workspace }}/gradlew test jacocoTestReport --no-daemon
 
       - name: "Publish Unit Test Results"
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           check_name: "Unit test results"
-          files: test-results/**/*.xml
+          files: build/test-results/**/*.xml
 
       - name: "Upload unit test report"
         uses: actions/upload-artifact@v2
@@ -171,7 +170,9 @@ jobs:
 
   licenceCheck:
     runs-on: ubuntu-latest
-    needs: compile
+    needs: 
+      - compile
+      - staticFossaCheck
     steps:
       - name: "Load sources"
         uses: actions/cache@v2
