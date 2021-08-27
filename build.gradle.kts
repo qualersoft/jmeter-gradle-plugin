@@ -140,11 +140,14 @@ tasks {
     additionalClassDirs(sourceSets.main.get().output.classesDirs)
     additionalSourceDirs(sourceSets.main.get().allSource.sourceDirectories)
     executionData(functionalTest.get())
-    reports { 
+    mustRunAfter(functionalTest)
+  }
+
+  withType<JacocoReport> {
+    reports {
       xml.required.set(true)
       html.required.set(true)
     }
-    mustRunAfter(functionalTest)
   }
 
   dokkaJavadoc.configure {
