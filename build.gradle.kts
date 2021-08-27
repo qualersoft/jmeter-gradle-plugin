@@ -4,6 +4,7 @@ plugins {
   kotlin("jvm") version "1.5.30"
 
   // quality
+  id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
   jacoco
   id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
@@ -82,6 +83,7 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
 
 // Add a source set for the functional test suite
 val functionalTestSourceSet = sourceSets.create("functionalTest") {
+  
 }
 
 gradlePlugin.testSourceSets(functionalTestSourceSet)
@@ -92,6 +94,25 @@ val functionalTest by tasks.registering(Test::class) {
   group = "verification"
   testClassesDirs = functionalTestSourceSet.output.classesDirs
   classpath = functionalTestSourceSet.runtimeClasspath
+  dependsOn(tasks.generateJacocoTestKitProperties)
+  if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+    fun File.isLocked() = !renameTo(this)
+    val waitUntilJacocoTestExecIsUnlocked = Action<Task> {
+      val jacocoTestExec = checkNotNull(extensions.getByType(JacocoTaskExtension::class).destinationFile)
+      val waitMillis = 100L
+      var tries = 0
+      while (jacocoTestExec.isLocked() && (tries++ < 100)) {
+        logger.info("Waiting $waitMillis ms (${jacocoTestExec.name} is locked)...")
+        Thread.sleep(waitMillis)
+      }
+      logger.info("Done waiting (${jacocoTestExec.name} is unlocked).")
+    }
+    doLast(waitUntilJacocoTestExecIsUnlocked)
+  }
+}
+
+jacocoTestKit {
+  applyTo("functionalTestRuntimeOnly", tasks.named("functionalTest"))
 }
 
 tasks {
@@ -112,6 +133,18 @@ tasks {
   check {
     // Run the functional tests as part of `check`
     dependsOn(functionalTest)
+  }
+
+  register<JacocoReport>("jacocoFunctionalTestReport") {
+    group = "verification"
+    additionalClassDirs(sourceSets.main.get().output.classesDirs)
+    additionalSourceDirs(sourceSets.main.get().allSource.sourceDirectories)
+    executionData(functionalTest.get())
+    reports { 
+      xml.required.set(true)
+      html.required.set(true)
+    }
+    mustRunAfter(functionalTest)
   }
 
   dokkaJavadoc.configure {

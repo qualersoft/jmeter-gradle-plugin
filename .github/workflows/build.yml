@@ -59,6 +59,11 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-${{ secrets.GRADLE_CACHE_VERSION }}-
       - name: "Detekt"
         run: ${{ github.workspace }}/gradlew detekt --no-daemon
+      - name: Upload detekt report
+        uses: actions/upload-artifact@v2
+        with:
+          name: unittestreport
+          path: build/reports/detekt
 
   staticFossaCheck:
     name: "Fossa licence analyze - static check"
@@ -98,7 +103,7 @@ jobs:
       - name: "Compile"
         run: ${{ github.workspace }}/gradlew classes --no-daemon
 
-  test:
+  unitTest:
     runs-on: ubuntu-latest
     needs: compile
     steps:
@@ -120,9 +125,19 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
       - name: "Unit test"
-        run: ${{ github.workspace }}/gradlew test --no-daemon
+        run: ${{ github.workspace }}/gradlew test jacocoTestReport --no-daemon
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: test-results/**/*.xml
+      - name: Upload unit test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: unittestreport
+          path: build/reports/tests/test
 
-  funcTest:
+  functionalTest:
     runs-on: ubuntu-latest
     needs: compile
     steps:
@@ -144,7 +159,17 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-funcTest-${{ github.run_id }}
       - name: "Functional tests"
-        run: ${{ github.workspace }}/gradlew functionalTest --no-daemon
+        run: ${{ github.workspace }}/gradlew functionalTest jacocoFunctionalTestReport --no-daemon
+      - name: Publish functional test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: build/test-results/**/*.xml
+      - name: Upload functional test report
+        uses: actions/upload-artifact@v2
+        with:
+         name: functionaltestreport
+         path: build/reports/tests/functionalTest
 
   licenceCheck:
     runs-on: ubuntu-latest
