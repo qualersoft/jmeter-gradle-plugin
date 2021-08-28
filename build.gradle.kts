@@ -123,7 +123,6 @@ tasks {
   this.detekt {
     // Target version of the generated JVM bytecode. It is used for type resolution.
     this.jvmTarget = JavaVersion.VERSION_11.toString()
-
   }
   
   withType<Test> {
