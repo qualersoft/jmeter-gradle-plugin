@@ -23,9 +23,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
-import java.net.JarURLConnection
-import java.util.jar.JarEntry
-import java.util.jar.JarInputStream
 
 @Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Abstract base class")
@@ -223,11 +220,11 @@ abstract class JMeterBaseTask : JavaExec() {
   }
 
   /**
-   * Util function that copies a bundled *toplevel* resource to target.
+   * Util function that copies a bundled *toplevel* resource *file* to target.
    */
   protected fun File.fromResource(resourceName: String): File {
     val destFile = this.resolve(resourceName)
-    val srcStream = JMeterBaseTask::class.java.getResourceAsStream("/$resourceName") as JarInputStream
+    val srcStream = JMeterBaseTask::class.java.getResourceAsStream("/$resourceName")
     srcStream.use { src ->
       destFile.outputStream().use { fos ->
         src.copyTo(fos)
