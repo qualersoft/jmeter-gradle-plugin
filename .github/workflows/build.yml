@@ -16,7 +16,6 @@ jobs:
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
-        id: checkout
 
       - name: "Extract branch name"
         id: extract_branch
@@ -38,7 +37,6 @@ jobs:
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
-        id: checkout
 
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
@@ -58,7 +56,6 @@ jobs:
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
-        id: checkout
 
       - name: "Fossa analyze"
         uses: fossas/fossa-action@v1
@@ -75,41 +72,45 @@ jobs:
     runs-on: ubuntu-latest
     needs: init
     steps:
-      - name: "Load sources"
+      - name: "Check out sources"
+        uses: actions/checkout@v2
+
+      - name: "Compile cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
-          key: ${{ runner.os }}-sources-${{ github.run_id }}
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v1
         with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: classes
 
   unitTest:
     runs-on: ubuntu-latest
     needs: compile
     steps:
+      - name: "Check out sources"
+        uses: actions/checkout@v2
+
       - name: "Load compile cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Unit test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
       - name: "Unit test"
         uses: burrunan/gradle-cache-action@v1
         with:
+          remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
           arguments: |
             test
@@ -133,21 +134,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
+      - name: "Check out sources"
+        uses: actions/checkout@v2
+
       - name: "Load compile cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Functional test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-funcTest-${{ github.run_id }}
 
       - name: "Functional tests"
         uses: burrunan/gradle-cache-action@v1
         with:
+          remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
           arguments: |
             functionalTest
@@ -173,16 +178,19 @@ jobs:
       - unitTest
       - functionalTest
     steps:
+      - name: "Check out sources"
+        uses: actions/checkout@v2
+
       - name: "Load test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
       - name: "Load functional test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-functest-${{ github.run_id }}
 
       - name: "Publish Report"
@@ -195,10 +203,13 @@ jobs:
       - report
       - licenceCheck
     steps:
+      - name: "Check out sources"
+        uses: actions/checkout@v2
+
       - name: "Load compile cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/**
+          path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Publish"
@@ -207,5 +218,6 @@ jobs:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ github.token }}
         with:
+          remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
           arguments: publish
