@@ -28,9 +28,10 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-sources-${{ github.run_id }}
 
-      - name: init gradle
-        if: steps.gradle-cache.outputs.cache-hit != 'true'
-        run: ./gradlew --no-daemon
+      - name: "init gradle"
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: --no-daemon
 
   staticDetektCheck:
     name: "Detekt - static check"
@@ -44,8 +45,7 @@ jobs:
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: |
-            detekt
+          arguments: detekt
 
       - name: "Upload detekt report"
         uses: actions/upload-artifact@v2
