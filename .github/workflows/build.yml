@@ -93,7 +93,7 @@ jobs:
         with:
           arguments: |
             classes
-            burrunan/gradle-cache-action@v1
+            --no-daemon
 
   unitTest:
     runs-on: ubuntu-latest
