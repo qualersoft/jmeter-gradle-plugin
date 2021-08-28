@@ -28,10 +28,8 @@ jobs:
           path: ${{ github.workspace }}/**
           key: ${{ runner.os }}-sources-${{ github.run_id }}
 
-      - name: "init gradle"
+      - name: "init gradle cache"
         uses: burrunan/gradle-cache-action@v1
-        with:
-          arguments: --no-daemon
 
   staticDetektCheck:
     name: "Detekt - static check"
@@ -45,12 +43,14 @@ jobs:
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: detekt
+          arguments: |
+            detekt
+            --no-daemon
 
       - name: "Upload detekt report"
         uses: actions/upload-artifact@v2
         with:
-          name: Detekt report
+          name: detektReport
           path: build/reports/detekt
 
   licenceCheck:
@@ -91,7 +91,9 @@ jobs:
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: classes
+          arguments: |
+            classes
+            burrunan/gradle-cache-action@v1
 
   unitTest:
     runs-on: ubuntu-latest
@@ -127,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: unittestreport
+          name: unitTestReport
           path: build/reports/tests/test
 
   functionalTest:
@@ -164,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-         name: functionaltestreport
+         name: functionalTestReport
          path: build/reports/tests/functionalTest
 
   report:
@@ -209,3 +211,4 @@ jobs:
         with:
           arguments: |
             publish
+            --no-daemon
