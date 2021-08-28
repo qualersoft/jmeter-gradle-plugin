@@ -21,12 +21,6 @@ jobs:
         id: extract_branch
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: "Cache source"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/**
-          key: ${{ runner.os }}-sources-${{ github.run_id }}
-
       - name: "init gradle cache"
         uses: burrunan/gradle-cache-action@v1
 
@@ -41,6 +35,8 @@ jobs:
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
         with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: detekt
 
       - name: "Upload detekt report"
@@ -85,7 +81,6 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
-          save-local-build-cache: false
           arguments: classes
 
   unitTest:
@@ -111,7 +106,6 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
-          save-local-build-cache: false
           arguments: |
             test
             jacocoTestReport
@@ -153,7 +147,6 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
-          save-local-build-cache: false
           arguments: |
             functionalTest
             jacocoFunctionalTestReport
