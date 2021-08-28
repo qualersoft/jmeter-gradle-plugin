@@ -167,7 +167,7 @@ jobs:
         if: always()
         with:
           check_name: "Functional kotlin test results"
-          files: build/test-results/functionaKotlinTest/*.xml
+          files: build/test-results/functionalKotlinTest/*.xml
 
       - name: "Upload functional kotlin test report"
         uses: actions/upload-artifact@v2
