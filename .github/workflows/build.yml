@@ -8,22 +8,6 @@ on:
       - issues/**
 
 jobs:
-  init:
-    name: "Init"
-    runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.extract_branch.outputs.branch }}
-    steps:
-      - name: "Check out sources"
-        uses: actions/checkout@v2
-
-      - name: "Extract branch name"
-        id: extract_branch
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-
-      - name: "init gradle cache"
-        uses: burrunan/gradle-cache-action@v1
-
   staticDetektCheck:
     name: "Detekt - static check"
     runs-on: ubuntu-latest
@@ -71,12 +55,6 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Compile cache"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/build/**
-          key: ${{ runner.os }}-compile-${{ github.run_id }}
-
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v1
         with:
@@ -90,16 +68,10 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Load compile cache"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/build/**
-          key: ${{ runner.os }}-compile-${{ github.run_id }}
-
       - name: "Unit test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/**
+          path: ${{ github.workspace }}/build/reports/jacoco/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
       - name: "Unit test"
@@ -131,16 +103,10 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Load compile cache"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/build/**
-          key: ${{ runner.os }}-compile-${{ github.run_id }}
-
       - name: "Functional test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/**
+          path: ${{ github.workspace }}/build/reports/jacoco/**
           key: ${{ runner.os }}-funcTest-${{ github.run_id }}
 
       - name: "Functional tests"
@@ -177,13 +143,13 @@ jobs:
       - name: "Load test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/**
+          path: ${{ github.workspace }}/build/reports/jacoco/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
       - name: "Load functional test cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/**
+          path: ${{ github.workspace }}/build/reports/jacoco/**
           key: ${{ runner.os }}-functest-${{ github.run_id }}
 
       - name: "Publish Report"
