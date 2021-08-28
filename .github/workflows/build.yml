@@ -43,9 +43,7 @@ jobs:
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: |
-            detekt
-            --no-daemon
+          arguments: detekt
 
       - name: "Upload detekt report"
         uses: actions/upload-artifact@v2
@@ -91,9 +89,7 @@ jobs:
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: |
-            classes
-            --no-daemon
+          arguments: classes
 
   unitTest:
     runs-on: ubuntu-latest
@@ -114,6 +110,7 @@ jobs:
       - name: "Unit test"
         uses: burrunan/gradle-cache-action@v1
         with:
+          save-local-build-cache: false
           arguments: |
             test
             jacocoTestReport
@@ -151,6 +148,7 @@ jobs:
       - name: "Functional tests"
         uses: burrunan/gradle-cache-action@v1
         with:
+          save-local-build-cache: false
           arguments: |
             functionalTest
             jacocoFunctionalTestReport
@@ -209,6 +207,5 @@ jobs:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ github.token }}
         with:
-          arguments: |
-            publish
-            --no-daemon
+          save-local-build-cache: false
+          arguments: publish
