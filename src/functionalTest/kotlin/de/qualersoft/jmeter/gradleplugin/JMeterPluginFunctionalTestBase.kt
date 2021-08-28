@@ -21,7 +21,9 @@ open class JMeterPluginFunctionalTestBase {
   annotation class KotlinTag
 
   protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder()
-    .parentFolder(File("./build/tmp/functionalTest").absoluteFile)
+    .parentFolder(File("./build/tmp/functionalTests").also { 
+      it.mkdirs()
+    }.absoluteFile)
     .assureDeletion().build()
 
   /**
@@ -48,7 +50,6 @@ open class JMeterPluginFunctionalTestBase {
 
   private fun createRunner() = GradleRunner.create()
     .withProjectDir(testProjectDir.root)
-    .forwardOutput()
     // Attention: do not enable debug! Details see https://github.com/gradle/gradle/issues/6862
     .withPluginClasspath()
     .withTestKitDir(testProjectDir.newFolder())

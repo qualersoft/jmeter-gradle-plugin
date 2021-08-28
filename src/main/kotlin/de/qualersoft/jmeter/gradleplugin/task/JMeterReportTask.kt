@@ -1,7 +1,9 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
+import org.gradle.api.tasks.CacheableTask
 import java.io.File
 
+@CacheableTask
 open class JMeterReportTask : JMeterBaseTask() {
 
   override fun processResources(jmBinDir: File) {

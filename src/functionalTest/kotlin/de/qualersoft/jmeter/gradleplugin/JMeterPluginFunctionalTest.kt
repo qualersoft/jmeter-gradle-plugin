@@ -21,7 +21,23 @@ class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   @KotlinTag
-  fun `register a run task`() {
+  fun `register a run task in kotlin dsl`() {
+    // Setup the test build
+    getFolderAction = { "runTest" }
+
+    val runner = setupKotlinTest("default_build")
+      .withArguments("tasks")
+
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    assertTrue(result.output.contains("runTest"))
+  }
+
+  @Test
+  @GroovyTag
+  fun `register a run task in groovy dsl`() {
     // Setup the test build
     getFolderAction = { "runTest" }
 

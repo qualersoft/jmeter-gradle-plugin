@@ -18,18 +18,25 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.net.JarURLConnection
 import java.util.jar.JarEntry
 import java.util.jar.JarInputStream
 
+@Suppress("UnstableApiUsage")
+@DisableCachingByDefault(because = "Abstract base class")
 abstract class JMeterBaseTask : JavaExec() {
 
   private val log: Logger = Logging.getLogger(javaClass)
+  @Internal
   protected val jmExt = project.extensions.getByType(JMeterExtension::class.java)
 
   @InputFile
+  @PathSensitive(PathSensitivity.ABSOLUTE)
   @Optional
   val userPropertiesFile: RegularFileProperty = objectFactory.fileProperty().convention(
     jmExt.userPropertiesFile
@@ -43,8 +50,8 @@ abstract class JMeterBaseTask : JavaExec() {
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
   @InputFile
-  @Internal
-  val sourceFile: RegularFileProperty = objectFactory.fileProperty()
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  protected val sourceFile: RegularFileProperty = objectFactory.fileProperty()
 
   @OutputDirectory
   val resultDirectory: DirectoryProperty = objectFactory.directoryProperty().convention(
