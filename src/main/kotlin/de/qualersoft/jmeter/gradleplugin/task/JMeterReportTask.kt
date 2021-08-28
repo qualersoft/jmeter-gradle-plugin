@@ -7,7 +7,11 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.JarURLConnection
+import java.util.jar.JarFile
+import java.util.zip.ZipEntry
 
 @CacheableTask
 open class JMeterReportTask : JMeterBaseTask() {
@@ -41,20 +45,26 @@ open class JMeterReportTask : JMeterBaseTask() {
       for (entry in jarFile.entries()) {
         // only copy stuff that is under resources' path
         if (entry.name.startsWith(jarSrcPath)) {
-          val filename = entry.name.removePrefix(jarSrcPath)
-          val f = File(destReportTempDir, filename)
-          if (!entry.isDirectory) {
-            val srcStream = jarFile.getInputStream(entry)
-            srcStream.use { src ->
-              f.outputStream().use { dest ->
-                src.copyTo(dest)
-              }
-            }
-          } else {
-            f.mkdirs()
-          }
+          copyJarEntryToFolder(jarFile, entry, jarSrcPath, destReportTempDir)
         }
       }
+    }
+  }
+
+  private fun copyJarEntryToFolder(jarFile: JarFile, entry: ZipEntry, jarSrcPath: String, targetDir: File) {
+    val filename = entry.name.removePrefix(jarSrcPath)
+    val f = File(targetDir, filename)
+    if (!entry.isDirectory) {
+      val srcStream = jarFile.getInputStream(entry)
+      copyStream(srcStream, f.outputStream())
+    } else {
+      f.mkdirs()
+    }
+  }
+
+  private fun copyStream(srcStream: InputStream, destStream: OutputStream) {
+    srcStream.use { src ->
+      destStream.use { dest -> src.copyTo(dest) }
     }
   }
 
