@@ -50,16 +50,24 @@ jobs:
           ref: main
 
       - name: Publish artifact to GitHub
+        uses: burrunan/gradle-cache-action@v1
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.actor }}
-        run: ./gradlew publish
+        with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
+          arguments: publish
 
       - name: Publish to gradle
+        uses: burrunan/gradle-cache-action@v1
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        run: ./gradlew publishPlugins
+        with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
+          arguments: publishPlugins
 
       - name: prepare merge
         run: |
@@ -70,7 +78,12 @@ jobs:
           git merge main --allow-unrelated-histories --strategy=recursive -Xtheirs --no-commit
 
       - name: Create next version
-        run: ./gradlew updateVersion -PnewVersion=snapshot
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
+          arguments: updateVersion
+          properties: newVersion=snapshot
 
       - name: Commit changes
         run: |
