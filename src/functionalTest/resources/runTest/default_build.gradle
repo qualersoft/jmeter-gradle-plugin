@@ -1,0 +1,11 @@
+plugins {
+  id 'de.qualersoft.jmeter'
+}
+
+repositories {
+  mavenCentral()
+}
+
+tasks.register("runTest", de.qualersoft.jmeter.gradleplugin.task.JMeterRunTask) {
+  jmxFile.set("Test.jmx")
+}
