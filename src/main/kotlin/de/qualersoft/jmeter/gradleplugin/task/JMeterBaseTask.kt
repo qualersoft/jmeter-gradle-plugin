@@ -1,9 +1,11 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
+import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
 import de.qualersoft.jmeter.gradleplugin.JMETER_EXEC
 import de.qualersoft.jmeter.gradleplugin.JMETER_EXTENSION
 import de.qualersoft.jmeter.gradleplugin.JMETER_TOOL
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
+import de.qualersoft.jmeter.gradleplugin.copyToDir
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.DirectoryProperty
@@ -29,31 +31,35 @@ import java.io.File
 abstract class JMeterBaseTask : JavaExec() {
 
   private val log: Logger = Logging.getLogger(javaClass)
+
   @Internal
   protected val jmExt = project.extensions.getByType(JMeterExtension::class.java)
+
+  @Input
+  val jmxFile: Property<String> = objectFactory.property(String::class.java)
+
+  @Input
+  @Optional
+  val jmeterProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
+    .value(jmExt.jmeterProperties)
 
   @InputFile
   @PathSensitive(PathSensitivity.ABSOLUTE)
   @Optional
-  val userPropertiesFile: RegularFileProperty = objectFactory.fileProperty().convention(
-    jmExt.userPropertiesFile
-  )
+  val globalPropertiesFile: RegularFileProperty = objectFactory.fileProperty()
+    .value(jmExt.globalPropertiesFile)
 
   @Input
-  val userProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
-    .value(jmExt.userProperties)
-
-  @Input
-  val jmxFile: Property<String> = objectFactory.property(String::class.java)
+  val globalProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
+    .value(jmExt.globalProperties)
 
   @InputFile
   @PathSensitive(PathSensitivity.ABSOLUTE)
   protected val sourceFile: RegularFileProperty = objectFactory.fileProperty()
 
   @OutputDirectory
-  val resultDirectory: DirectoryProperty = objectFactory.directoryProperty().convention(
-    jmExt.resultDir
-  )
+  val resultDirectory: DirectoryProperty = objectFactory.directoryProperty()
+    .value(jmExt.resultDir)
 
   /**
    * Whether to delete results if exists or not.
@@ -70,9 +76,12 @@ abstract class JMeterBaseTask : JavaExec() {
    * Defaults to jmeter.reportDir
    */
   @OutputDirectory
-  val reportDir: DirectoryProperty = objectFactory.directoryProperty().convention(
-    jmExt.reportDir
-  )
+  val reportDir: DirectoryProperty = objectFactory.directoryProperty()
+    .value(jmExt.reportDir)
+
+  @Input
+  val maxHeap: Property<String> = objectFactory.property(String::class.java)
+    .value(jmExt.maxHeap)
 
   init {
     group = "jmeter"
@@ -107,15 +116,15 @@ abstract class JMeterBaseTask : JavaExec() {
     val tool = jmExt.tool
     copyRespectProperty(tool.logConfig, "log4j2.xml", jmBinDir)
     copyRespectProperty(tool.jmeterPropertyFile, "jmeter.properties", jmBinDir)
-    copyRespectProperty(tool.upgradePropertyFile,"upgrade.properties", jmBinDir)
-    copyRespectProperty(tool.saveServicePropertyFile,"saveservice.properties", jmBinDir)
+    copyRespectProperty(tool.upgradePropertyFile, "upgrade.properties", jmBinDir)
+    copyRespectProperty(tool.saveServicePropertyFile, "saveservice.properties", jmBinDir)
   }
 
-  protected fun copyRespectProperty(property: RegularFileProperty, resource:String, toDir:File) {
-    if(property.isPresent) {
+  protected fun copyRespectProperty(property: RegularFileProperty, resource: String, toDir: File) {
+    if (property.isPresent) {
       property.asFile.get().copyToDir(toDir)
     } else {
-      toDir.fromResource(resource)
+      toDir.copyFromResourceFile(resource)
     }
   }
 
@@ -143,6 +152,9 @@ abstract class JMeterBaseTask : JavaExec() {
     resolveExtensionLibs(JMETER_EXTENSION, extDir, libDir)
     resolveToolLibs(JMETER_TOOL, libDir)
 
+    if (maxHeap.isPresent) {
+      maxHeapSize = maxHeap.get()
+    }
     jvmArgs(jmExt.jvmArgs.get())
     args(createRunArguments())
     log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
@@ -162,6 +174,9 @@ abstract class JMeterBaseTask : JavaExec() {
       }
     resolvedExtenstions.flatMap {
       it.children
+    }.filterNot {
+      // only take dependencies that were not already copied earlier
+      resolvedExtenstions.contains(it)
     }.flatMap {
       it.allModuleArtifacts
     }.map {
@@ -192,7 +207,7 @@ abstract class JMeterBaseTask : JavaExec() {
     }?.file!!
   }
 
-  protected open fun createRunArguments() = mutableListOf<String>().apply {
+  internal open fun createRunArguments() = mutableListOf<String>().apply {
     add("-t")
     val src = sourceFile.get().asFile
     add(src.absolutePath) // test file
@@ -205,42 +220,21 @@ abstract class JMeterBaseTask : JavaExec() {
     add("-j")
     add(resultDirectory.file("${src.nameWithoutExtension}.log").get().asFile.absolutePath)
 
-    // user properties file goes first to allow override by dedicated user properties
-    if (userPropertiesFile.isPresent) {
-      add("-G${userPropertiesFile.get().asFile.absolutePath}")
+    jmeterProperties.get().forEach { (k, v) ->
+      add("-J$k=$v")
     }
 
-    userProperties.get().forEach { (k, v) ->
+    // global properties file goes first to allow override by dedicated global properties
+    if (globalPropertiesFile.isPresent) {
+      add("-G${globalPropertiesFile.get().asFile.absolutePath}")
+    }
+
+    globalProperties.get().forEach { (k, v) ->
       add("-G$k=$v")
     }
 
     if (deleteResults) {
       add("-f")
     }
-  }
-
-  /**
-   * Util function that copies a bundled *toplevel* resource *file* to target.
-   */
-  protected fun File.fromResource(resourceName: String): File {
-    val destFile = this.resolve(resourceName)
-    val srcStream = JMeterBaseTask::class.java.getResourceAsStream("/$resourceName")
-    srcStream.use { src ->
-      destFile.outputStream().use { fos ->
-        src.copyTo(fos)
-      }
-    }
-    return destFile
-  }
-
-  /**
-   * Copies this file to a target directory
-   */
-  protected fun File.copyToDir(destDir: File): File {
-    val destFile = destDir.resolve(this.name)
-    if (!destFile.exists()) {
-      this.copyTo(destFile)
-    }
-    return destFile
   }
 }

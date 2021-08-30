@@ -24,15 +24,23 @@ open class JMeterPluginFunctionalTestBase {
     .parentFolder(File("./build/tmp/functionalTests").also { 
       it.mkdirs()
     }.absoluteFile)
-    .assureDeletion().build()
+    .assureDeletion().build().apply { 
+      create()
+    }
 
+  /**
+   * Path to the jmxFile.
+   * Will be copied to default location if 
+   */
+  protected var jmxFile = { "Test.jmx" }
+  
   /**
    * Meant to be overridden if required.
    * If not `null` the whole folder will be copied.
    * @see setupGroovyTest
    * @see setupKotlinTest
    */
-  protected open fun rootFolder(): String? = null
+  protected var rootFolder: () -> String? = { null }
 
   protected fun setupKotlinTest(baseFileName: String): GradleRunner {
     copyTestFileToTemp(baseFileName, EXT_KT)
@@ -55,6 +63,30 @@ open class JMeterPluginFunctionalTestBase {
     .withTestKitDir(testProjectDir.newFolder())
     .withJaCoCo()
 
+  /**
+   * Copies a jmx-file from `resource` to the default location.
+   * @param srcJmx The path to the jmx-file. Defaults to [jmxFile]
+   */
+  fun copyJmxToDefaultLocation(srcJmx: String = jmxFile()) {
+    val destDir = testProjectDir.newFolder("./src/test/jmeter")
+    destDir.mkdirs()
+    val resource = File(javaClass.classLoader.getResource(srcJmx)!!.file)
+    val destFile = destDir.resolve(resource.name)
+    resource.copyTo(destFile)
+  }
+
+  /**
+   * Copies a result-file (*.jtl) from `resource` to the default location.
+   * @param source The path to the resource file.
+   */
+  fun copyResultToDefaultLocation(source: String) {
+    val destDir = testProjectDir.newFolder("./build/test-results/jmeter")
+    destDir.mkdirs()
+    val resource = File(javaClass.classLoader.getResource(source)!!.file)
+    val destFile = destDir.resolve(resource.name)
+    resource.copyTo(destFile)
+  }
+
   private fun copyTestFileToTemp(resource: String, ext: String): File {
     var res = resource + ext
     // if we have a root folder
@@ -68,28 +100,13 @@ open class JMeterPluginFunctionalTestBase {
     file.inputStream().use { input ->
       result.outputStream().use { output -> input.copyTo(output) }
     }
-    
+
     val settings = testProjectDir.newFile("settings$ext")
     settings.writeText("")
 
-    // copy rest of data to temp dir
-    rootFolder()?.also {
-      val folder = File(this.javaClass.classLoader.getResource(it)!!.file)
-      folder.listFiles { f ->
-        // only get those files not starting with the build-script resource name
-        !(f.isFile && f.name.startsWith(resource))
-      }?.forEach { f ->
-        f.copyRecursively(
-          if (f.isFile) {
-            File(testProjectDir.root, f.name)
-          } else {
-            File(testProjectDir.root, f.name).also { folder -> folder.mkdir() }
-          }
-        )
-      }
-    }
     return result
   }
+
 
   protected fun File.copyTo(file: File) {
     this.inputStream().toFile(file)

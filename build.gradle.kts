@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
+import org.gradle.api.tasks.testing.logging.*
 
 plugins {
   // implementation
@@ -109,6 +110,10 @@ listOf("groovy", "kotlin").forEach {
     useJUnitPlatform {
       includeTags.add(it)
     }
+    testLogging {
+      events = setOf(TestLogEvent.FAILED)
+      exceptionFormat = TestExceptionFormat.FULL
+    }
     mustRunAfter(project.tasks.test)
   }
 
@@ -147,6 +152,10 @@ tasks {
   
   test {
     useJUnitPlatform()
+    testLogging {
+      events = setOf(TestLogEvent.FAILED)
+      exceptionFormat = TestExceptionFormat.SHORT
+    }
   }
 
   withType<JacocoReport> {

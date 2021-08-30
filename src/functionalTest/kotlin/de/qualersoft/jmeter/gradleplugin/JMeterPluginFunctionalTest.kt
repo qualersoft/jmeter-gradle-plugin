@@ -3,7 +3,6 @@
  */
 package de.qualersoft.jmeter.gradleplugin
 
-import java.io.File
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
@@ -12,18 +11,11 @@ import kotlin.test.assertTrue
  */
 class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
 
-  override fun rootFolder(): String? {
-    val fa = getFolderAction
-    return if (null == fa) null else fa()
-  }
-
-  var getFolderAction: (() -> String?)? = null
-
   @Test
   @KotlinTag
   fun `register a run task in kotlin dsl`() {
     // Setup the test build
-    getFolderAction = { "runTest" }
+    rootFolder = { "runTest" }
 
     val runner = setupKotlinTest("default_build")
       .withArguments("tasks")
@@ -39,8 +31,7 @@ class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
   @GroovyTag
   fun `register a run task in groovy dsl`() {
     // Setup the test build
-    getFolderAction = { "runTest" }
-
+    rootFolder = { "runTest" }
     val runner = setupKotlinTest("default_build")
       .withArguments("tasks")
 
@@ -49,13 +40,5 @@ class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
     val result = runner.build()
 
     assertTrue(result.output.contains("runTest"))
-  }
-
-  fun copyJmxToDefaultLocation() {
-    val destFldr = testProjectDir.newFolder("./src/test/jmeter")
-    destFldr.mkdirs()
-    val resource = File(JMeterPluginFunctionalTest::class.java.classLoader.getResource("Test.jmx")!!.file)
-    val destFile = destFldr.resolve(resource.name)
-    resource.copyTo(destFile)
   }
 }
