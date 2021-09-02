@@ -48,6 +48,7 @@ jobs:
 
   compile:
     runs-on: ubuntu-latest
+    name: "Build artifact"
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
@@ -56,7 +57,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
-          arguments: classes
+          arguments: jar
 
   validatePlugin:
     runs-on: ubuntu-latest
@@ -88,6 +89,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: |
             test
             jacocoTestReport
@@ -123,6 +125,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: |
             functionalTest
             jacocoFunctionalTestReport
