@@ -119,7 +119,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-funcTest-${{ github.run_id }}
+          key: ${{ runner.os }}-functionalTest-${{ github.run_id }}
 
       - name: "Execute Functional tests"
         uses: burrunan/gradle-cache-action@v1
