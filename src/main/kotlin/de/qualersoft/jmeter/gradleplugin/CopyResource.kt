@@ -4,11 +4,8 @@ import org.gradle.api.logging.Logging
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.UnsupportedOperationException
 import java.net.JarURLConnection
 import java.net.URL
-import kotlin.jvm.Throws
-
 
 object CopyResource {
 
@@ -39,7 +36,6 @@ object CopyResource {
     }
   }
 
-
   fun copyStream(srcStream: InputStream, destStream: OutputStream) {
     srcStream.use { src ->
       destStream.use { dest -> src.copyTo(dest) }
@@ -54,7 +50,6 @@ object CopyResource {
   private fun getResource(resourceName: String) =
     javaClass.classLoader.getResource(resourceName)
       ?: throw IllegalArgumentException("Resource '$resourceName' not found!")
-
 
   private fun getRelativeResourcePath(url: URL, itemOnly: Boolean = true): String {
     val entry = (url.openConnection() as JarURLConnection).jarEntry
@@ -77,15 +72,13 @@ object CopyResource {
       val res = getResource(resourceName)
       val target = getRelativeResourcePath(res, fileOnly)
       val destFile = this.resolve(target)
-      val srcStream = res.openStream()
-      copyStream(srcStream, destFile.outputStream())
+      copyStream(res.openStream(), destFile.outputStream())
       return destFile
     } else {
-      throw UnsupportedOperationException("Source is not a directory")
+      throw FileSystemException(file = this, reason = "I'm not a directory.")
     }
   }
 }
-
 
 /**
  * Copies this file to a target directory

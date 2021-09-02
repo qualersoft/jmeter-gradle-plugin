@@ -21,12 +21,9 @@ open class JMeterPluginFunctionalTestBase {
   annotation class KotlinTag
 
   protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder()
-    .parentFolder(File("./build/tmp/functionalTests").also { 
-      it.mkdirs()
-    }.absoluteFile)
-    .assureDeletion().build().apply { 
-      create()
-    }
+    .parentFolder(File("./build/tmp/functionalTest").absoluteFile)
+    .assureDeletion()
+    .build()
 
   /**
    * Path to the jmxFile.

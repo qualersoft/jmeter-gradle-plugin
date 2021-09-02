@@ -1,14 +1,12 @@
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
-import org.gradle.api.tasks.testing.logging.*
-
 plugins {
   // implementation
   `java-gradle-plugin`
   kotlin("jvm") version "1.5.30"
 
   // quality
-  id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
   jacoco
+  id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
+  id("org.unbroken-dome.test-sets") version "4.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
   // documentation
@@ -27,7 +25,12 @@ repositories {
   mavenCentral()
 }
 
-val antJUnit: Configuration by configurations.creating
+testSets {
+  "functionalTest" {
+    description = "Runs the functional tests"
+  }
+}
+
 dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -44,8 +47,6 @@ dependencies {
   testImplementation(group = "io.kotest", name = "kotest-assertions-core-jvm", version = "4.6.2")
 
   testRuntimeOnly(kotlin("script-runtime"))
-
-  antJUnit(group = "org.apache.ant", name = "ant-junit", version = "1.10.5")
 }
 
 gradlePlugin {
@@ -94,48 +95,28 @@ java {
   withJavadocJar()
 }
 
-// Add a source set for the functional test suite
-val functionalTestSourceSet = sourceSets.create("functionalTest") {
-  
+// Setup functional test sets
+val functionalTestTask = tasks.named<Test>("functionalTest") {
+  description = "Run the functional tests"
+  group = "verification"
+  testClassesDirs = sourceSets.named("functionalTest").get().output.classesDirs
+  classpath = sourceSets.named("functionalTest").get().runtimeClasspath
+
+  useJUnitPlatform()
+  shouldRunAfter(tasks.test)
+  dependsOn(tasks.jar)
+  applyJacocoWorkaround()
 }
 
-gradlePlugin.testSourceSets(functionalTestSourceSet)
-configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
+jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTestTask as TaskProvider<Task>)
 
-// Setup functional test sets
-listOf("groovy", "kotlin").forEach {
-  val testName = it.capitalizeAsciiOnly()
-  val theTest = tasks.register<Test>("functional${testName}Test") {
-    configureDefaultFuncTest(this)
-    useJUnitPlatform {
-      includeTags.add(it)
-    }
-    testLogging {
-      events = setOf(TestLogEvent.FAILED)
-      exceptionFormat = TestExceptionFormat.FULL
-    }
-    mustRunAfter(project.tasks.test)
-  }
-
-  tasks.check {
-    dependsOn(theTest)
-  }
-
-  jacocoTestKit.applyTo("functionalTestRuntimeOnly", theTest as TaskProvider<Task>)
-
-  project.tasks.register<JacocoReport>("jacoco${testName}Report") {
-    group = "verification"
-    additionalClassDirs(sourceSets.main.get().output.classesDirs)
-    additionalSourceDirs(sourceSets.main.get().allSource.sourceDirectories)
-    val jacocoExt = theTest.get().extensions.getByName<JacocoTaskExtension>("jacoco")
-    executionData(jacocoExt.destinationFile)
-    mustRunAfter(theTest)
-  }
+tasks.check {
+  dependsOn(functionalTestTask)
 }
 
 tasks {
 
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
       jvmTarget = javaVersion.toString()
     }
@@ -149,16 +130,25 @@ tasks {
     // Target version of the generated JVM bytecode. It is used for type resolution.
     this.jvmTarget = JavaVersion.VERSION_11.toString()
   }
-  
+
   test {
     useJUnitPlatform()
-    testLogging {
-      events = setOf(TestLogEvent.FAILED)
-      exceptionFormat = TestExceptionFormat.SHORT
-    }
   }
 
-  withType<JacocoReport> {
+  pluginUnderTestMetadata {
+    // https://discuss.gradle.org/t/how-to-make-gradle-testkit-depend-on-output-jar-rather-than-just-classes/18940/2
+    val gradlePlgExt = project.extensions.getByName<GradlePluginDevelopmentExtension>("gradlePlugin")
+    val additionalResources = pluginClasspath.files - files(
+      gradlePlgExt.pluginSourceSet.output.classesDirs,
+      gradlePlgExt.pluginSourceSet.output.resourcesDir
+    )
+    pluginClasspath.setFrom(
+      files(jar) + additionalResources
+    )
+    mustRunAfter(jar)
+  }
+
+  withType<JacocoReport>().configureEach {
     reports {
       xml.required.set(true)
       html.required.set(true)
@@ -174,37 +164,11 @@ tasks {
   }
 
   // the following merge tasks are only for local execution and not meant to be used pipeline!!!
-  register<JacocoReport>("jacocoMergedReport") {
+  register<JacocoReport>("jacocoMergedReports") {
     group = "verification"
     additionalClassDirs(sourceSets.main.get().output.classesDirs)
     additionalSourceDirs(sourceSets.main.get().allSource.sourceDirectories)
     withType<Test>().map { executionData(it) }
-  }
-
-  register("mergedTestReport") {
-    val resultsDir = file("$buildDir/test-results/merged").also {
-      it.mkdirs()
-    }
-    val reportDir = file("$buildDir/reports/tests/merged")
-    doLast {
-      ant.withGroovyBuilder {
-        "taskdef"(
-          "name" to "junitreport",
-          "classname" to "org.apache.tools.ant.taskdefs.optional.junit.XMLResultAggregator",
-          "classpath" to antJUnit.asPath
-        )
-
-        // generates an XML report
-        "junitreport"("todir" to resultsDir) {
-          "fileset"(
-            "dir" to resultsDir.parentFile,
-            "includes" to "**/TEST-*.xml")
-          "report"( // additionally generates an HTML report
-            "todir" to reportDir,
-            "format" to "frames")
-        }
-      }
-    }
   }
 }
 
@@ -221,24 +185,27 @@ publishing {
   }
 }
 
-fun configureDefaultFuncTest(test: Test) {
-  test.group = "verification"
-  test.testClassesDirs = functionalTestSourceSet.output.classesDirs
-  test.classpath = functionalTestSourceSet.runtimeClasspath
-
+//https://github.com/koral--/jacoco-gradle-testkit-plugin/issues/9
+fun Test.applyJacocoWorkaround() {
   // Workaround on gradle/jacoco keeping *.exec file locked
   if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
-    fun File.isLocked() = !renameTo(this)
-    val waitUntilJacocoTestExecIsUnlocked = Action<Task> {
-      val jacocoTestExec = checkNotNull(extensions.getByType(JacocoTaskExtension::class).destinationFile)
+    logger.lifecycle("Running on Windows -> applying jacoco-lock workaround")
+    this.doLast("JacocoLockWorkaround") {
+      fun File.isLocked() = !renameTo(this)
+      logger.lifecycle("Execute workaround")
+      val jacocoTestExec = checkNotNull(extensions.getByType(JacocoTaskExtension::class)).destinationFile
+      if (null == jacocoTestExec) {
+        logger.lifecycle("No exec file ô.Ô?")
+        return@doLast
+      }
+      logger.lifecycle("Waiting for $jacocoTestExec to become unlocked")
       val waitMillis = 100L
       var tries = 0
-      while (jacocoTestExec.isLocked() && (tries++ < 100)) {
-        logger.info("Waiting $waitMillis ms (${jacocoTestExec.name} is locked)...")
+      while ((!jacocoTestExec.exists() || jacocoTestExec.isLocked()) && (tries++ < 100)) {
+        logger.lifecycle("Waiting $waitMillis ms (${jacocoTestExec.name} is locked)...")
         Thread.sleep(waitMillis)
       }
-      logger.info("Done waiting (${jacocoTestExec.name} is unlocked).")
+      logger.lifecycle("Done waiting (${jacocoTestExec.name} is unlocked).")
     }
-    test.doLast(waitUntilJacocoTestExecIsUnlocked)
   }
 }

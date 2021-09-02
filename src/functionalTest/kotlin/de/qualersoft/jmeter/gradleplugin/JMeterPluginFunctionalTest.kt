@@ -3,7 +3,10 @@
  */
 package de.qualersoft.jmeter.gradleplugin
 
+import io.kotest.matchers.file.exist
+import io.kotest.matchers.should
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 import kotlin.test.assertTrue
 
 /**
@@ -40,5 +43,21 @@ class JMeterPluginFunctionalTest : JMeterPluginFunctionalTestBase() {
     val result = runner.build()
 
     assertTrue(result.output.contains("runTest"))
+  }
+
+  @Test
+  @KotlinTag
+  fun `execute run task with minimum config`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build").withArguments("runTest")
+    copyJmxToDefaultLocation()
+
+    val result = runner.forwardOutput().build()
+    val resultFolder = runner.projectDir.resolve("build/test-results/jmeter")
+    assertAll(
+      { runShouldSucceed(result) },
+      { resultFolder should exist() },
+      { resultFolder.resolve("Test.jtl") should exist() }
+    )
   }
 }
