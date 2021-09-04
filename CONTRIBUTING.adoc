@@ -1,0 +1,53 @@
+= Contributing to jmeter-gradle-plugin
+:toc:
+:toc-placement!:
+:gh_rp: https://github.com/qualersoft/jmeter-gradle-plugin
+
+👍🎉 First off, thanks for taking the time to contributing 🎉👍 +
+Any kind of contribution is welcome😊
+
+toc::[]
+
+== Code of conduct
+This project and everyone participates in it is governed by the link:CODE_OF_CONDUCT.adoc[Code of Conduct]
+
+== Found a bug?
+* Ensure the bug was not already reported by searching our {gh_rp}/issues[issues]
+* Check for an existing {gh_rp}/discussions[discussion] on your issue
+* If you're unable to find an open issue addressing the problem by creating a {gh_rp}/issues/new?assignees=&labels=&template=bug_report.md&title=[new bug ticket]
+
+== Found a security vulnerability?
+Please refer to our link:SECURITY.adoc[SECURITY] advisory
+
+== Have an improvement idea?
+Very cool! Let's get it into the project!
+
+* First make sure your idea isn't already addressed by a {gh_rp}/issues[feature request] or already in {gh_rp}/discussions[discussion]
+* If a feature request already exists and no one is assigned to it, leaf a comment on it that you are interested in work on it.
+* If there is a discussion about your idea, participate in it.
+* If neither a discussion nor a feature request exists, feel free to create a {gh_rp}/issues/new?assignees=&labels=&template=feature_request.md&title=[new feature request]
+
+== Working with issues
+To keep the information of any issue on its essentials, please respect the following guidelines:
+
+* any discussion shall take place in {gh_rp}/discussions/categories/issues[discuss an issue]. There is no "`golden rule`" from when a discussion in an issue get out of hand, and a discussion should be opened. But a rule of thumb is: "If there are any conflictive opinions, open a discussion"
+* If a discussion about an issue exists it shall be linked.
+* Discussions about an issue must have the issue's id within its title
+* Us 👍 or 👎 on the issue (not a single comment, see <<Discussions on issues>>) to up/down vote it. +
+Note:: Do not add comments like "+1", "-1", "Want that", "Disagree"; Such comments will be deleted.
+
+== Discussions
+{gh_rp}/discussions[Here] is the place where you can share your ideas, ask or answer questions.
+
+=== Discussions on issues
+To up or down vote an idea/comment, use 👍 or 👎 respectively. Avoid cluttering the discussion with "+1", "-1", "like", "dislike" etc. comments. +
+If you write a comment, it should provide value to the discussion.
+
+== Code review
+This project encourages actively reviewing the code, as it will store your precious data, so it's common practice to receive comments on provided patches.
+
+If you are reviewing other contributor's code please consider the following when reviewing:
+
+* Be nice. Please make the review comment as constructive as possible so all participants will learn something from your review.
+
+As a contributor, you might be asked to rewrite portions of your code to make it fit better into the upstream sources.

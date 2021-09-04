@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Getting help
+    url: https://github.com/qualersoft/jmeter-gradle-plugin/discussions/categories/q-a
+    about: Still not what you need? Have a look in our discussions Q&A
+  - name: Search existing issues
+    url: https://github.com/qualersoft/jmeter-gradle-plugin/issues
+    about: If the wiki wasn't helpfull, please check for existing issues.
+  - name: Talk with us
+    url: https://github.com/qualersoft/jmeter-gradle-plugin/discussions
+    about: Maybe also this may be interesting

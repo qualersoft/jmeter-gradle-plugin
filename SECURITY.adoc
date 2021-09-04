@@ -1,0 +1,10 @@
+= Security Policy
+:gh_rp: https://github.com/qualersoft/jmeter-gradle-plugin
+
+== Supported Versions
+Only latest version will receive security updates. +
+We do not process any security vulnerabilities in third-party libraries others than those that can be addressed by upgrading a version. If you discover a security vulnerability within a third party library, please report it to the respective community.
+
+== Reporting a Vulnerability
+Before reporting a security issue, please ensure you are at the latest version. +
+You can file a security vulnerability {gh_rp}/security/advisories/new[here]
