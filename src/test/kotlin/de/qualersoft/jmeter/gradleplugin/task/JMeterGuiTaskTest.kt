@@ -67,7 +67,7 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
         withClue("Delete results should be false") { task.deleteResults shouldBe false }
       },
       {
-        withClue("Max heap size") { task.maxHeap.get() shouldBe "1024m" }
+        withClue("No default max heap size") { task.maxHeap.isPresent shouldBe false }
       }
     )
   }
@@ -116,7 +116,7 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
   @Test
   fun taskMustHaveJmxFileConfigured() {
     val task = createTask<JMeterGuiTask> { }.get()
-    shouldThrow<IllegalStateException> { task.createRunArguments() }
+    shouldThrow<NoSuchElementException> { task.createRunArguments() }
   }
 
   @Test

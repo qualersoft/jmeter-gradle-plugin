@@ -36,6 +36,7 @@ abstract class JMeterBaseTask : JavaExec() {
   protected val jmExt = project.extensions.getByType(JMeterExtension::class.java)
 
   @Input
+  @Optional
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
   @Input
@@ -80,6 +81,7 @@ abstract class JMeterBaseTask : JavaExec() {
     .value(jmExt.reportDir)
 
   @Input
+  @Optional
   val maxHeap: Property<String> = objectFactory.property(String::class.java)
     .value(jmExt.maxHeap)
 
@@ -93,11 +95,11 @@ abstract class JMeterBaseTask : JavaExec() {
         log.lifecycle("No jmx file specified! Taking any from '${jmExt.jmxRootDir.get()}'.")
         jmExt.jmxRootDir.asFileTree.matching {
           it.include("*.jmx")
-        }.singleFile
+        }.first()
       }
     }
 
-    mainClass.convention(jmExt.tool.mainClass)
+    mainClass.value(jmExt.tool.mainClass)
   }
 
   /**
@@ -154,7 +156,9 @@ abstract class JMeterBaseTask : JavaExec() {
 
     if (maxHeap.isPresent) {
       maxHeapSize = maxHeap.get()
+      log.lifecycle("Using maximum heap size of $maxHeapSize.")
     }
+
     jvmArgs(jmExt.jvmArgs.get())
     args(createRunArguments())
     log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)

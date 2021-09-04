@@ -3,7 +3,6 @@ package de.qualersoft.jmeter.gradleplugin
 import de.qualersoft.jmeter.gradleplugin.task.JMeterGuiTask
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
@@ -77,13 +76,9 @@ open class JMeterExtension(private val project: Project) {
   val globalProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
   /**
-   * Delares the maximum heap size of the JVM process.
-   * 
-   * Defaults to 1024m
+   * Declares the maximum heap size of the JVM process.
    */
-  val maxHeap: Property<String> = objects.property(String::class.java).convention(
-    "1024m"
-  )
+  val maxHeap: Property<String> = objects.property(String::class.java)
 
   /**
    * JVM-arguments that will be passed to the java process which executes jMeter.

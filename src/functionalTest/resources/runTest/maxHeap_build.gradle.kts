@@ -4,6 +4,10 @@ plugins {
   id("de.qualersoft.jmeter")
 }
 
+jmeter {
+  resultDir.set(file("jmeter-results"))
+}
+
 repositories {
   mavenCentral()
 }
@@ -11,5 +15,6 @@ repositories {
 tasks {
   register<JMeterRunTask>("runTest") {
     jmxFile.set("Test.jmx")
+    maxHeap.set("16m")
   }
 }

@@ -21,7 +21,9 @@ open class JMeterReportTask : JMeterBaseTask() {
   @InputDirectory
   @PathSensitive(PathSensitivity.ABSOLUTE)
   @Optional
-  val reportTemplate: DirectoryProperty = objectFactory.directoryProperty()
+  val reportTemplate: DirectoryProperty = objectFactory.directoryProperty().value(
+    jmExt.tool.reportTemplateFolder
+  )
 
   override fun processResources(jmBinDir: File) {
     super.processResources(jmBinDir)
@@ -30,8 +32,6 @@ open class JMeterReportTask : JMeterBaseTask() {
     val destReportTempDir = jmBinDir.resolve("report-template")
     if (reportTemplate.isPresent) {
       reportTemplate.asFile.get().copyRecursively(destReportTempDir, true)
-    } else if (jmExt.tool.reportTemplateFolder.isPresent) {
-      jmExt.tool.reportTemplateFolder.asFile.get().copyRecursively(destReportTempDir, true)
     } else {
       // copy from jar
       // ensure directory exists

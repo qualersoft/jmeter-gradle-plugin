@@ -7,6 +7,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Tag
 import java.io.File
 import java.io.InputStream
+import java.util.zip.ZipFile
 
 
 private const val EXT_GR = ".gradle"
@@ -27,10 +28,11 @@ open class JMeterPluginFunctionalTestBase {
 
   /**
    * Path to the jmxFile.
-   * Will be copied to default location if 
+   * Will be copied to default location.
+   * Defaults to `Test.jmx`
    */
   protected var jmxFile = { "Test.jmx" }
-  
+
   /**
    * Meant to be overridden if required.
    * If not `null` the whole folder will be copied.
@@ -39,24 +41,29 @@ open class JMeterPluginFunctionalTestBase {
    */
   protected var rootFolder: () -> String? = { null }
 
-  protected fun setupKotlinTest(baseFileName: String): GradleRunner {
+  protected fun setupKotlinTest(baseFileName: String, debug: Boolean = false): GradleRunner {
     copyTestFileToTemp(baseFileName, EXT_KT)
-    return createRunner()
+    return createRunner(debug)
   }
 
-  protected fun setupGroovyTest(baseFileName: String): GradleRunner {
+  protected fun setupGroovyTest(baseFileName: String, debug: Boolean = false): GradleRunner {
     copyTestFileToTemp(baseFileName, EXT_GR)
-    return createRunner()
+    return createRunner(debug)
   }
 
   protected fun runShouldSucceed(result: BuildResult) {
     result.output shouldContain "BUILD SUCCESSFUL"
   }
 
-  private fun createRunner() = GradleRunner.create()
+  protected fun runShouldFail(result: BuildResult, reason: String = "") {
+    result.output shouldContain "FAILURE: $reason"
+  }
+
+  private fun createRunner(debug: Boolean) = GradleRunner.create()
     .withProjectDir(testProjectDir.root)
     // Attention: do not enable debug! Details see https://github.com/gradle/gradle/issues/6862
     .withPluginClasspath()
+    .withDebug(debug)
     .withTestKitDir(testProjectDir.newFolder())
     .withJaCoCo()
 
@@ -82,6 +89,24 @@ open class JMeterPluginFunctionalTestBase {
     val resource = File(javaClass.classLoader.getResource(source)!!.file)
     val destFile = destDir.resolve(resource.name)
     resource.copyTo(destFile)
+  }
+
+  fun copyZipResourceTo(resource: String, targetDir: File) {
+    val tmp = testProjectDir.newFolder()
+    val tmpZip = tmp.resolve(resource)
+
+    javaClass.classLoader.getResourceAsStream(resource).copyTo(tmpZip.outputStream())
+    val zip = ZipFile(tmpZip)
+    zip.use { zf ->
+      zf.stream().forEach { ze ->
+        val targetEntry = targetDir.resolve(ze.name)
+        if (ze.isDirectory) {
+          targetEntry.mkdirs()
+        } else {
+          zf.getInputStream(ze).copyTo(targetEntry.outputStream())
+        }
+      }
+    }
   }
 
   private fun copyTestFileToTemp(resource: String, ext: String): File {

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
   // implementation
   `java-gradle-plugin`
@@ -104,7 +106,7 @@ val functionalTestTask = tasks.named<Test>("functionalTest") {
 
   useJUnitPlatform()
   shouldRunAfter(tasks.test)
-  dependsOn(tasks.jar)
+  dependsOn(tasks.jar, tasks.named("generateJacocoFunctionalTestKitProperties"))
   applyJacocoWorkaround()
 }
 

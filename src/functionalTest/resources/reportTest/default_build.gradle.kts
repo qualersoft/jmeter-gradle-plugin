@@ -12,4 +12,7 @@ tasks {
   register<JMeterRunTask>("runTest") {
     jmxFile.set("Test.jmx")
   }
+  register<JMeterReportTask>("reportTest") {
+    jmxFile.set("Test.jmx")
+  }
 }

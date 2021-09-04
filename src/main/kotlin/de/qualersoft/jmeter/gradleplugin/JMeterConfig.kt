@@ -62,7 +62,7 @@ class JMeterConfig(private val project: Project) {
   val mainConfigureClosure: Closure<ExternalModuleDependency>? = null
 
   /**
-   * Path to jmeters main class.
+   * The fully qualified name of the Main class to be executed.
    *
    * Defaults to `org.apache.jmeter.NewDriver`
    */
