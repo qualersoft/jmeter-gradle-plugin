@@ -10,12 +10,25 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 
+/**
+ * Class to configure the jMeter tool.
+ * 
+ * Provides settings for the used dependency of the main runner ([group], [name], [version], main class[mainClass]).
+ * As well as configuration settings for:
+ * - [jmeter.properties][jmeterPropertyFile],
+ * - [log4j2.xml][logConfig],
+ * - [report-template folder][reportTemplateFolder],
+ * - [reportgenerator.properties][reportGeneratorPropertyFile],
+ * - [saveservice.properties][saveServicePropertyFile],
+ * - [upgrade.properties][upgradePropertyFile]
+ */
 class JMeterConfig(private val project: Project) {
 
   private val logger: Logger = Logging.getLogger(JMeterConfig::class.java)
 
   private val objects = project.objects
 
+  //<editor-fold desc="dependency settings">
   /**
    * The group id of the main library.
    * Used to resolve the library within a repository.
@@ -46,16 +59,18 @@ class JMeterConfig(private val project: Project) {
    * for the main library.
    * Default: `null`
    */
-  val mainConfigureClosure: Closure<ExternalModuleDependency>? = null;
+  val mainConfigureClosure: Closure<ExternalModuleDependency>? = null
 
   /**
-   * Path to jmeters main class.
+   * The fully qualified name of the Main class to be executed.
    *
    * Defaults to `org.apache.jmeter.NewDriver`
    */
   val mainClass: Property<String> = objects.property(String::class.java)
     .convention("org.apache.jmeter.NewDriver")
+  //</editor-fold>
 
+  //<editor-fold desc="Configuration files">
   /**
    * Path to the `jmeter.properties` file required by jmeters.
    * Will be copied to jmeters bin directory.
@@ -127,7 +142,11 @@ class JMeterConfig(private val project: Project) {
    * Defaults to the file bundled with the plugin.
    */
   val upgradePropertyFile = objects.fileProperty()
+  //</editor-fold>
 
+  /**
+   * Convenience method to add the jmeter tool dependency with the current setting to the project.
+   */
   fun applyTo(config: Configuration) {
     config.dependencies.add(createJMeterLibDependency())
   }

@@ -8,7 +8,7 @@ import org.gradle.work.DisableCachingByDefault
 open class JMeterRunTask : JMeterBaseTask() {
 
   @Input
-  val generateReport: Boolean = false
+  var generateReport: Boolean = false
 
   override fun createRunArguments() = mutableListOf<String>().also {
     it.add("-n") // no gui

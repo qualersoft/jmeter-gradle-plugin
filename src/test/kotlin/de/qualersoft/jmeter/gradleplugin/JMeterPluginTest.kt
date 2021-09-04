@@ -34,6 +34,6 @@ class JMeterPluginTest {
   }
 
   private fun applyPlugin() = ProjectBuilder.builder().build().also {
-    it.plugins.apply("de.qualersoft.jmeter")
+    it.plugins.apply(PluginTestBase.PLUGIN_ID)
   }
 }

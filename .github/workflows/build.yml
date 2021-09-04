@@ -48,6 +48,7 @@ jobs:
 
   compile:
     runs-on: ubuntu-latest
+    name: "Build artifact"
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
@@ -56,7 +57,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
-          arguments: classes
+          arguments: jar
 
   validatePlugin:
     runs-on: ubuntu-latest
@@ -88,6 +89,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: |
             test
             jacocoTestReport
@@ -106,7 +108,7 @@ jobs:
           name: unitTestReport
           path: build/reports/tests/test
 
-  functionalGroovyTest:
+  functionalTest:
     runs-on: ubuntu-latest
     needs: compile
     steps:
@@ -117,71 +119,36 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-funcGroovyTest-${{ github.run_id }}
+          key: ${{ runner.os }}-functionalTest-${{ github.run_id }}
 
-      - name: "Functional groovy tests"
+      - name: "Execute Functional tests"
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
           arguments: |
-            functionalGroovyTest
-            jacocoGroovyReport
+            functionalTest
+            jacocoFunctionalTestReport
 
-      - name: "Publish functional groovy test results"
+      - name: "Publish functional test results"
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          check_name: "Functional groovy test results"
-          files: build/test-results/functionalGroovyTest/*.xml
+          check_name: "Functional test results"
+          files: build/test-results/functionalTest/*.xml
 
-      - name: "Upload functional groovy test report"
+      - name: "Upload functional test report"
         uses: actions/upload-artifact@v2
         if: always()
         with:
-         name: functionalGroovyTestReport
-         path: build/reports/tests/functionalGroovyTest
-
-  functionalKotlinTest:
-    runs-on: ubuntu-latest
-    needs: compile
-    steps:
-      - name: "Check out sources"
-        uses: actions/checkout@v2
-
-      - name: "Functional kotlin test cache"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-funcKotlinTest-${{ github.run_id }}
-
-      - name: "Functional kotlin tests"
-        uses: burrunan/gradle-cache-action@v1
-        with:
-          remote-build-cache-proxy-enabled: false
-          arguments: |
-            functionalKotlinTest
-            jacocoKotlinReport
-
-      - name: "Publish functional kotlin test results"
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          check_name: "Functional kotlin test results"
-          files: build/test-results/functionalKotlinTest/*.xml
-
-      - name: "Upload functional kotlin test report"
-        uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: functionalKotlinTestReport
-          path: build/reports/tests/functionalKotlinTest
+         name: functionalTestReport
+         path: build/reports/tests/functionalTest
 
   report:
     runs-on: ubuntu-latest
     needs:
       - unitTest
-      - functionalGroovyTest
-      - functionalKotlinTest
+      - functionalTest
     steps:
       - name: "Check out sources"
         uses: actions/checkout@v2
@@ -192,17 +159,11 @@ jobs:
           path: ${{ github.workspace }}/build/reports/jacoco/**
           key: ${{ runner.os }}-test-${{ github.run_id }}
 
-      - name: "Load functional groovy test cache"
+      - name: "Load functional test cache"
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-funcGroovyTest-${{ github.run_id }}
-
-      - name: "Load functional kotlin test cache"
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-funcKotlinTest-${{ github.run_id }}
+          key: ${{ runner.os }}-functionalTest-${{ github.run_id }}
 
       - name: "Publish Report"
         uses: codecov/codecov-action@v2

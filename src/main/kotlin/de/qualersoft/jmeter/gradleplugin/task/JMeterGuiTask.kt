@@ -7,10 +7,11 @@ import org.gradle.work.DisableCachingByDefault
 open class JMeterGuiTask : JMeterBaseTask() {
 
   init {
-    outputs.upToDateWhen { 
+    outputs.upToDateWhen {
       false
     }
   }
+
   override fun createRunArguments() = mutableListOf<String>().also {
     it.addAll(super.createRunArguments())
   }
