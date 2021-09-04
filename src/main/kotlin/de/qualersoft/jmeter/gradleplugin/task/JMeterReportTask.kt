@@ -9,6 +9,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import java.io.File
 
+/**
+ * Task to create jmeter reports.
+ */
 @CacheableTask
 open class JMeterReportTask : JMeterBaseTask() {
 

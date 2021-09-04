@@ -187,6 +187,54 @@ publishing {
   }
 }
 
+tasks.register("updateVersion") {
+  description = """ONLY FOR CI/CD purposes!
+    |
+    |This task is meant to be used by CI/CD to generate new release versions.
+    |Prerequists: a `gradle.properties` next to this build-script must exist.
+    |   version must follow semver-schema: <number>'.'<number>'.'<number>('-'.*)?
+    |Usage:
+    |  > ./gradlew updateVersion -PnewVersion="the new version"
+  """.trimMargin()
+
+  doLast {
+    var newVersion = project.findProperty("newVersion") as String?
+      ?: throw IllegalArgumentException(
+        "No `newVersion` specified!" +
+          " Usage: ./gradlew updateVersion -PnewVersion=<version>"
+      )
+
+    if (newVersion.contains("snapshot", true)) {
+      val props = Properties()
+      props.load(getGradlePropsFile().inputStream())
+      val currVersion = (props["version"] as String?)!!.split('.').toMutableList()
+      val next = currVersion.last()
+        .replace(Regex("[^\\d]+"), "").toInt() + 1
+      currVersion[currVersion.lastIndex] = "$next-SNAPSHOT"
+      newVersion = currVersion.joinToString(".")
+    }
+
+    persistVersion(newVersion)
+  }
+}
+
+fun getGradlePropsFile(): File {
+  val propsFile = files("./gradle.properties").singleFile
+  if (!propsFile.exists()) {
+    val msg = "This task requires version to be stored in gradle.properties file, which does not exist!"
+    throw UnsupportedOperationException(msg)
+  }
+  return propsFile
+}
+
+fun persistVersion(newVersion: String) {
+  val propsFile = getGradlePropsFile()
+  val props = Properties()
+  props.load(propsFile.inputStream())
+  props.setProperty("version", newVersion)
+  props.store(propsFile.outputStream(), null)
+}
+
 //https://github.com/koral--/jacoco-gradle-testkit-plugin/issues/9
 fun Test.applyJacocoWorkaround() {
   // Workaround on gradle/jacoco keeping *.exec file locked
