@@ -19,7 +19,7 @@ jobs:
         run: |
           output=$(./gradlew nextVersion -Pkind=${{ github.event.inputs.release_kind }} \
             | grep -Po '(?<=^NewVersion=).*$')
-          echo "::set-output name=version::$output
+          echo "::set-output name=version::$output"
 
       - name: "Create release branch"
         run: |
