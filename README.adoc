@@ -11,23 +11,24 @@ ifndef::env-github[]
 endif::[]
 :jm_tm:     https://jmeter.apache.org/[JMeter(TM),window=_blank]
 :jm_cli:    https://jmeter.apache.org/usermanual/get-started.html#override
+:gh_rp:     https://github.com/qualersoft/jmeter-gradle-plugin
 :toc: preamble
 
 [cols="1,~", frame=none, grid=none]
 |===
 |General
-|image:https://img.shields.io/github/license/qualersoft/jmeter-gradle-plugin[link=https://github.com/qualersoft/jmeter-gradle-plugin/blob/main/LICENSE]
+|image:https://img.shields.io/github/license/qualersoft/jmeter-gradle-plugin[link={gh_rp}/blob/main/LICENSE]
 image:https://app.fossa.com/api/projects/custom%2B17788%2Fgithub.com%2Fqualersoft%2Fjmeter-gradle-plugin.svg?type=shield[link=https://app.fossa.com/projects/custom%2B17788%2Fjmeter-gradle-plugin/refs/branch/main/]
 
 |Main
-|image:{gh_rp}/actions/workflows/build.yml/badge.svg?branch=develop[title="Build status", link={gh_rp}/blob/develop/.github/workflows/build.yml]
+|image:{gh_rp}/actions/workflows/build.yml/badge.svg?branch=main[title="Build status", link={gh_rp}/blob/main/.github/workflows/build.yml]
 image:https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/badge/main[title="Code quality", link=https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/overview/main]
-image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/main/graph/badge.svg?token=Z5CT2C7LN1[title="Coverage", link=https://codecov.io/gh/qualersoft/jmeter-gradle-plugin]
+image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/main/graph/badge.svg?token=Z5CT2C7LN1[title="Coverage", link=https://app.codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/main]
 
 |Develop
 |image:{gh_rp}/actions/workflows/build.yml/badge.svg?branch=develop[title="Build status", link={gh_rp}/blob/develop/.github/workflows/build.yml]
 image:https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/badge/develop[title="Code quality", link=https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/overview/develop]
-image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/develop/graph/badge.svg?token=Z5CT2C7LN1[title="Coverage", link=https://codecov.io/gh/qualersoft/jmeter-gradle-plugin]
+image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/develop/graph/badge.svg?token=XT7QzRFkaj[title="Coverage", link=https://app.codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/develop]
 |===
 
 Gradle plugin to integrate {jm_tm} tests into the gradle ecosystem. +
