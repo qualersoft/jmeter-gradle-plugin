@@ -17,15 +17,13 @@ jobs:
       - name: "Get next version"
         id: nextVersion
         run: |
-          ./gradlew nextVersion -Pkind=${{ github.event.inputs.release_kind }} \
-            | output=$(grep -Po '(?<=^newVersion=).*$')
+          output=$(./gradlew nextVersion -Pkind=${{ github.event.inputs.release_kind }} \
+            | grep -Po '(?<=^newVersion=).*$')
           echo "::set-output name=version::$output
 
       - name: "Create release branch"
-        run: git checkout -b release/${{ steps.nextVersion.outputs.version }}
-
-      - name: Initialize mandatory git config
         run: |
+          git checkout -b release/${{ steps.nextVersion.outputs.version }}
           git config user.name "${{ github.actor }} action"
           git config user.email "noreply@github.com"
 
