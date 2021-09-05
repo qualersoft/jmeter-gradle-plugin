@@ -10,7 +10,7 @@ repositories {
 
 jmeter {
   tool {
-    reportTemplateFolder.set(file("custom-template/report-template"))
+    reportTemplateDirectory.set(file("custom-template/report-template"))
   }
 }
 

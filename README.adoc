@@ -13,6 +13,23 @@ endif::[]
 :jm_cli:    https://jmeter.apache.org/usermanual/get-started.html#override
 :toc: preamble
 
+[cols="1,~", frame=none, grid=none]
+|===
+|General
+|image:https://img.shields.io/github/license/qualersoft/jmeter-gradle-plugin[link=https://github.com/qualersoft/jmeter-gradle-plugin/blob/main/LICENSE]
+image:https://app.fossa.com/api/projects/custom%2B17788%2Fgithub.com%2Fqualersoft%2Fjmeter-gradle-plugin.svg?type=shield[link=https://app.fossa.com/projects/custom%2B17788%2Fjmeter-gradle-plugin/refs/branch/main/]
+
+|Main
+|image:{gh_rp}/actions/workflows/build.yml/badge.svg?branch=develop[title="Build status", link={gh_rp}/blob/develop/.github/workflows/build.yml]
+image:https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/badge/main[title="Code quality", link=https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/overview/main]
+image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/main/graph/badge.svg?token=Z5CT2C7LN1[title="Coverage", link=https://codecov.io/gh/qualersoft/jmeter-gradle-plugin]
+
+|Develop
+|image:{gh_rp}/actions/workflows/build.yml/badge.svg?branch=develop[title="Build status", link={gh_rp}/blob/develop/.github/workflows/build.yml]
+image:https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/badge/develop[title="Code quality", link=https://www.codefactor.io/repository/github/qualersoft/jmeter-gradle-plugin/overview/develop]
+image:https://codecov.io/gh/qualersoft/jmeter-gradle-plugin/branch/develop/graph/badge.svg?token=Z5CT2C7LN1[title="Coverage", link=https://codecov.io/gh/qualersoft/jmeter-gradle-plugin]
+|===
+
 Gradle plugin to integrate {jm_tm} tests into the gradle ecosystem. +
 This plugin arose from the need of a simple to start, but easy to customize plugin. The current available plugins are either hardwired to older {jm_tm} version or configuration is not so well documented.
 
@@ -230,12 +247,11 @@ jmeter {
 ----
 
 == Configure jmeter
-As said in the prelude, this plugin is designed to be as flexible as possible.+
+As mentioned in the preamble, this plugin is designed to be as flexible as possible. +
 By that, the used jmeter runner artifact as well as plugins or libraries aren't hardwired but can be configured.
 
-
-== Configure the runner
-You can easily configure not only the version but also its coordinates. All this can be done through the `jmeter.tool` property. +
+=== Configure the runner
+You can easily configure not only the version but also its coordinates. All this can be done through the `jmeter.tool` property.
 [source,kotlin]
 ----
 jmeter {
@@ -247,7 +263,7 @@ jmeter {
     mainClass // <.>
 
     jmeterPropertyFile // <.>
-    reportTemplateFolder // <.>
+    reportTemplateDirectory // <.>
     logConfig // <.>
     reportGeneratorPropertyFile // <.>
     saveServicePropertyFile // <.>
@@ -257,17 +273,28 @@ jmeter {
 ----
 [%collapsible%]
 ====
-<1> the group-id of the jmeter-runner
-<2> the name (artifact-id) of the jmeter-runner
-<3> the version of the jmeter-runner
-<4> a closure/lambda to configure the dependency any further
-<5> the main class used to execute the jmeter runner
-<6> jmeters default property file
-<7> default report template folder required by report tasks
-<8> the log configuration used by jmeter
-<9> the properties used by report tasks
-<10> jmeter internal properties file, required to run
-<11> jmeter internal properties file, required to run
+<1> The group-id of the jmeter-runner. +
+Defaults to 'org.apache.jmeter'.
+<2> The name (artifact-id) of the jmeter-runner. +
+Defaults to 'ApacheJMeter'.
+<3> the version of the jmeter-runner. +
+Defaults to '5.4.1'.
+<4> A closure/lambda to configure the dependency any further. +
+Will only applied if not `null` (which is the default).
+<5> The main class used to execute the jmeter runner. +
+Defaults to 'org.apache.jmeter.NewDriver'.
+<6> JMeters default property file. +
+If not given, defaults to the file bundled with this plugin.
+<7> The default report template directory required by report tasks. +
+If not given, defaults to the template bundled with this plugin.
+<8> The log configuration used by jmeter. +
+If not given, defaults to the file bundled with this plugin.
+<9> The properties used by report tasks. +
+If not given, defaults to the properties bundled with this plugin.
+<10> JMeter internal properties file, required to run. +
+If not given, defaults to the file bundled with this plugin.
+<11> JMeter internal properties file, required to run. +
+If not given, defaults to the file bundled with this plugin.
 ====
 [TIP,title=Tips]
 ====
@@ -275,22 +302,40 @@ jmeter {
 2. If you change the tool version, it might be very likely that you also have to change most of the 'configuration files'
 ====
 
-=== Extending runner
-Because the runner itself is quite useless without any plugins this plugin 
-
-In addition, you can add additional jmeter plugins or support libraries.+
-This can be achieved using
+=== Adding plugins
+Because the runner itself is quite useless without any plugins you can add them with the `jmeterPlugin` dependency handler
 [source,kotlin]
 ----
 dependencies {
   jmeterPlugin("org.jmeter:a-plugin:1.2.3") // <.>
-  jmeterLibrary("org.apache:commons-lang3:1.2.3") // <.>
 }
 ----
 <1> Resolves the 'a-plugin' and puts its artifact into `/lib/ext`, transitive dependencies will be put to `lib` directory.
-<2> Resolves the 'commons-lang' artifact and puts its artifact, and all its transitive dependencies, under `/lib` directory.
 
-[WARNING,title=Internal only]
+By default, this plugin includes the following plugins (as they are also default plugins in a normal JMeter installation):
+====
+"bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap", "mail", "mongodb", "native", "tcp"
+====
+
+[%collapsible%, title=Info]
+====
+At the current time, these plugins are hardwired and cannot be modified. +
+(Yeah, I know so much about flexibility... Mea culpa! 😉)
+====
+
+=== Adding support libraries
+Sometime you have quite special and reusable code that you wouldn't maintain within JMeter. Or you just want to use an existing libraries functions within JMeter. +
+To make them available to JMeter you can use the `jmeterLibrary` dependency handler
+[source,kotlin]
+----
+dependencies {
+  jmeterLibrary("org.apache.commons:commons-csv:1.9.0") // <.>
+}
+----
+<1> Resolves the 'commons-csv' artifact and puts its artifact, and all its transitive dependencies, under `/lib` directory.
+
+[CAUTION,title=Internal only]
 ====
 Within an IDE with autocomplete, you may also notice the `jmeterRunner` dependency handler. This is for internal use only! Please use the respective `jmeter.tool` properties to configure the runner.
 ====
+
