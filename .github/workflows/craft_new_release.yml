@@ -33,7 +33,7 @@ jobs:
           remote-build-cache-proxy-enabled: false
           arguments: updateVersion
           properties: |
-            kind="${{ github.event.inputs.release_kind }}"
+            kind=${{ github.event.inputs.release_kind }}
 
       - name: Commit changes
         id: make-commit
