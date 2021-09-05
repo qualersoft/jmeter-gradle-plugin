@@ -1,4 +1,4 @@
-import java.util.Properties
+import de.qualersoft.parseSemVer
 
 plugins {
   // implementation
@@ -18,7 +18,7 @@ plugins {
   // publishing
   `maven-publish`
   id("com.gradle.plugin-publish") version "0.15.0"
-  id("com.github.ben-manes.versions") version "0.39.0"
+  id("org.jetbrains.changelog") version "1.3.0"
 }
 
 group = "de.qualersoft"
@@ -112,6 +112,13 @@ val functionalTestTask = tasks.named<Test>("functionalTest") {
 
 jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTestTask as TaskProvider<Task>)
 
+// Configure gradle-changelog-plugin plugin.
+// Read more: https://github.com/JetBrains/gradle-changelog-plugin
+changelog {
+  version.set(project.version.toString())
+  groups.set(emptyList())
+}
+
 tasks.check {
   dependsOn(functionalTestTask)
 }
@@ -187,6 +194,16 @@ publishing {
   }
 }
 
+val KINDS = listOf("major", "minor", "patch", "snapshot")
+tasks.register("nextVersion") {
+  doLast {
+    val kind = getKind(this)
+    val semVer = parseSemVer(project.version.toString())
+    semVer.updateByKind(kind)
+    logger.lifecycle("NewVersion=${semVer}")
+  }
+}
+
 tasks.register("updateVersion") {
   description = """ONLY FOR CI/CD purposes!
     |
@@ -194,29 +211,25 @@ tasks.register("updateVersion") {
     |Prerequists: a `gradle.properties` next to this build-script must exist.
     |   version must follow semver-schema: <number>'.'<number>'.'<number>('-'.*)?
     |Usage:
-    |  > ./gradlew updateVersion -PnewVersion="the new version"
+    |  > ./gradlew updateVersion -Pkind=${KINDS.joinToString("|", "[", "]")}
   """.trimMargin()
 
   doLast {
-    var newVersion = project.findProperty("newVersion") as String?
-      ?: throw IllegalArgumentException(
-        "No `newVersion` specified!" +
-          " Usage: ./gradlew updateVersion -PnewVersion=<version>"
-      )
+    val kind = getKind(this)
 
-    if (newVersion.contains("snapshot", true)) {
-      val props = Properties()
-      props.load(getGradlePropsFile().inputStream())
-      val currVersion = (props["version"] as String?)!!.split('.').toMutableList()
-      val next = currVersion.last()
-        .replace(Regex("[^\\d]+"), "").toInt() + 1
-      currVersion[currVersion.lastIndex] = "$next-SNAPSHOT"
-      newVersion = currVersion.joinToString(".")
-    }
-
-    persistVersion(newVersion)
+    val semVersion = parseSemVer(project.version.toString())
+    semVersion.updateByKind(kind)
+    semVersion.persist(getGradlePropsFile())
   }
 }
+
+fun getKind(task: Task) = (project.findProperty("kind") as String?)?.let { kind ->
+  val cleanKind = kind.trim()
+  KINDS.firstOrNull { it.equals(cleanKind, true) }
+    ?: throw IllegalArgumentException("Given kind '$kind' is none of ${KINDS.joinToString("|", "[", "]")}")
+} ?: throw IllegalArgumentException(
+  "No `kind` specified! Usage: ./gradlew ${task.name} -Pkind=${KINDS.joinToString("|", "[", "]")}"
+)
 
 fun getGradlePropsFile(): File {
   val propsFile = files("./gradle.properties").singleFile
@@ -225,14 +238,6 @@ fun getGradlePropsFile(): File {
     throw UnsupportedOperationException(msg)
   }
   return propsFile
-}
-
-fun persistVersion(newVersion: String) {
-  val propsFile = getGradlePropsFile()
-  val props = Properties()
-  props.load(propsFile.inputStream())
-  props.setProperty("version", newVersion)
-  props.store(propsFile.outputStream(), null)
 }
 
 //https://github.com/koral--/jacoco-gradle-testkit-plugin/issues/9
