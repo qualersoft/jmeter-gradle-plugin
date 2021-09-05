@@ -10,6 +10,11 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 
+/**
+ * Central configuration class.
+ * Herein configured properties will be used as default for any
+ * JMeter*Task.
+ */
 open class JMeterExtension(private val project: Project) {
 
   private val objects = project.objects

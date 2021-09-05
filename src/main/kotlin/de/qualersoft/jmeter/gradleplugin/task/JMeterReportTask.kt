@@ -9,6 +9,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import java.io.File
 
+/**
+ * Task to create jmeter reports.
+ */
 @CacheableTask
 open class JMeterReportTask : JMeterBaseTask() {
 
@@ -22,7 +25,7 @@ open class JMeterReportTask : JMeterBaseTask() {
   @PathSensitive(PathSensitivity.ABSOLUTE)
   @Optional
   val reportTemplate: DirectoryProperty = objectFactory.directoryProperty().value(
-    jmExt.tool.reportTemplateFolder
+    jmExt.tool.reportTemplateDirectory
   )
 
   override fun processResources(jmBinDir: File) {

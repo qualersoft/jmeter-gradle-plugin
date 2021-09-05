@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -17,7 +18,7 @@ import org.gradle.api.provider.Property
  * As well as configuration settings for:
  * - [jmeter.properties][jmeterPropertyFile],
  * - [log4j2.xml][logConfig],
- * - [report-template folder][reportTemplateFolder],
+ * - [report-template folder][reportTemplateDirectory],
  * - [reportgenerator.properties][reportGeneratorPropertyFile],
  * - [saveservice.properties][saveServicePropertyFile],
  * - [upgrade.properties][upgradePropertyFile]
@@ -81,7 +82,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the file bundled with the plugin.
    */
-  val jmeterPropertyFile = objects.fileProperty()
+  val jmeterPropertyFile: RegularFileProperty = objects.fileProperty()
 
   /**
    * Path to the report-template folder required by the report generator.
@@ -93,7 +94,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the folder bundled with the plugin.
    */
-  val reportTemplateFolder = objects.directoryProperty()
+  val reportTemplateDirectory: DirectoryProperty = objects.directoryProperty()
 
   /**
    * Path to the logger-configuration file (attow `log4j.xml`) required by jmeter.
@@ -117,7 +118,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the file bundled with the plugin.
    */
-  val reportGeneratorPropertyFile = objects.fileProperty()
+  val reportGeneratorPropertyFile: RegularFileProperty = objects.fileProperty()
 
   /**
    * Path to the saveservice.properties file required by jmeter.
@@ -129,7 +130,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the file bundled with the plugin.
    */
-  val saveServicePropertyFile = objects.fileProperty()
+  val saveServicePropertyFile: RegularFileProperty = objects.fileProperty()
 
   /**
    * Path to the upgrade.properties file required by jmeter.
@@ -141,7 +142,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the file bundled with the plugin.
    */
-  val upgradePropertyFile = objects.fileProperty()
+  val upgradePropertyFile: RegularFileProperty = objects.fileProperty()
   //</editor-fold>
 
   /**
@@ -154,7 +155,7 @@ class JMeterConfig(private val project: Project) {
   fun applyApacheComponents(config: Configuration) {
     listOf("bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap",
       "mail", "mongodb", "native", "tcp").forEach { 
-      val depNot = createComponentDependency(it)
+      val depNot = jmeterDependency(it)
       val dep = project.dependencies.create(depNot)
       logger.debug("Adding dependency for {}", dep)
       config.dependencies.add(applyBomWorkaround(dep))
@@ -164,10 +165,10 @@ class JMeterConfig(private val project: Project) {
   /**
    * Creates a dependency notation for a jmeter core extension where group is [group].
    * 
-   * @param name The name of the components module. The `ApacheJMeter_` will be prepended.
+   * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
    * @param version The version to use, defaults to [version]
    */
-  fun createComponentDependency(name: String, version: String? = null) = mutableMapOf<String, String>().also { 
+  fun jmeterDependency(name: String, version: String? = null) = mutableMapOf<String, String>().also { 
     it["group"] = group
     it["name"] = "ApacheJMeter_$name"
     it["version"] = version ?: this.version

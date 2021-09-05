@@ -1,9 +1,9 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
 import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
-import de.qualersoft.jmeter.gradleplugin.JMETER_EXEC
-import de.qualersoft.jmeter.gradleplugin.JMETER_EXTENSION
-import de.qualersoft.jmeter.gradleplugin.JMETER_TOOL
+import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
+import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
+import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
 import de.qualersoft.jmeter.gradleplugin.copyToDir
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -26,6 +26,10 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
+/**
+ * Base task for all JMeter*Tasks.
+ * Take care of proper preparation of jmeter runtime.
+ */
 @Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Abstract base class")
 abstract class JMeterBaseTask : JavaExec() {
@@ -35,36 +39,64 @@ abstract class JMeterBaseTask : JavaExec() {
   @Internal
   protected val jmExt = project.extensions.getByType(JMeterExtension::class.java)
 
+  /**
+   * The jmx-file to use. If omitted, any jmx-file under [JMeterExtension.jmxRootDir] will be used.
+   */
   @Input
   @Optional
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
+  /**
+   * Dedicated properties send to local JMeter only.
+   * 
+   * Inherited from [JMeterExtension.jmeterProperties]
+   */
   @Input
   @Optional
   val jmeterProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
     .value(jmExt.jmeterProperties)
 
+  /**
+   * Path to a JMeter property file which will be sent to all remote server.
+   * 
+   * Inherited from [JMeterExtension.globalPropertiesFile]
+   */
   @InputFile
   @PathSensitive(PathSensitivity.ABSOLUTE)
   @Optional
   val globalPropertiesFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.globalPropertiesFile)
 
+  /**
+   * Dedicated user properties send to all remote server.
+   * 
+   * Inherited from [JMeterExtension.globalProperties]
+   */
   @Input
   val globalProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
     .value(jmExt.globalProperties)
 
+  /**
+   * The source-jmx-file to use for execution. Will be computed based on [JMeterExtension.jmxRootDir] and [jmxFile].
+   * 
+   * Just for internal usage
+   */
   @InputFile
   @PathSensitive(PathSensitivity.ABSOLUTE)
   protected val sourceFile: RegularFileProperty = objectFactory.fileProperty()
 
+  /**
+   * Directory where to store the results.
+   * 
+   * Inherited from [JMeterExtension.resultDir]
+   */
   @OutputDirectory
   val resultDirectory: DirectoryProperty = objectFactory.directoryProperty()
     .value(jmExt.resultDir)
 
   /**
-   * Whether to delete results if exists or not.
-   * If `false` but results exists, jmeter fails!
+   * Force jmeter to delete/override any existing output.
+   * If `false` but output exists, jmeter fails!
    *
    * Defaults to `false`
    */
@@ -74,12 +106,16 @@ abstract class JMeterBaseTask : JavaExec() {
   /**
    * Directory where to create the report.
    *
-   * Defaults to jmeter.reportDir
+   * Inherited from [JMeterExtension.reportDir]
    */
   @OutputDirectory
   val reportDir: DirectoryProperty = objectFactory.directoryProperty()
     .value(jmExt.reportDir)
 
+  /**
+   * 
+   * Inherited from [JMeterExtension.maxHeap]
+   */
   @Input
   @Optional
   val maxHeap: Property<String> = objectFactory.property(String::class.java)
@@ -151,8 +187,8 @@ abstract class JMeterBaseTask : JavaExec() {
     extDir.mkdirs()
     junitDir.mkdirs()
 
-    resolveExtensionLibs(JMETER_EXTENSION, extDir, libDir)
-    resolveToolLibs(JMETER_TOOL, libDir)
+    resolveExtensionLibs(JMETER_PLUGIN_DEPENDENCY, extDir, libDir)
+    resolveToolLibs(JMETER_LIB_DEPENDENCY, libDir)
 
     if (maxHeap.isPresent) {
       maxHeapSize = maxHeap.get()
@@ -202,7 +238,7 @@ abstract class JMeterBaseTask : JavaExec() {
   private fun getJMeterLib(): File {
     val jmTool = jmExt.tool
     val artifacts: Set<ResolvedArtifact> = project.configurations
-      .getByName(JMETER_EXEC)
+      .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
     return artifacts.find {
       val id = it.moduleVersion.id

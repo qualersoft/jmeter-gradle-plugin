@@ -3,8 +3,8 @@ name: "Craft new release"
 on:
   workflow_dispatch:
     inputs:
-      target_version:
-        description: 'The target version under which to create the release.'
+      release_kind:
+        description: 'Kind of the release. One of `major`, `minor`, `patch`, `snapshot`.'
         required: true
 
 jobs:
@@ -14,11 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create release branch
-        run: git checkout -b release/${{ github.event.inputs.target_version }}
-
-      - name: Initialize mandatory git config
+      - name: "Get next version"
+        id: nextVersion
         run: |
+          output=$(./gradlew nextVersion -Pkind=${{ github.event.inputs.release_kind }} \
+            | grep -Po '(?<=^newVersion=).*$')
+          echo "::set-output name=version::$output
+
+      - name: "Create release branch"
+        run: |
+          git checkout -b release/${{ steps.nextVersion.outputs.version }}
           git config user.name "${{ github.actor }} action"
           git config user.email "noreply@github.com"
 
@@ -28,27 +33,27 @@ jobs:
           remote-build-cache-proxy-enabled: false
           arguments: updateVersion
           properties: |
-            newVersion="${{ github.event.inputs.target_version }}"
+            kind="${{ github.event.inputs.release_kind }}"
 
       - name: Commit changes
         id: make-commit
         run: |
           git add gradle.properties
-          git commit --message "Prepare release ${{ github.event.inputs.target_version }}"
+          git commit --message "Prepare release ${{ steps.nextVersion.outputs.version }}"
           echo "::set-output name=commit::$(git rev-parse HEAD)"
 
       - name: Push new branch
         run: |
-          git push origin release/${{ github.event.inputs.target_version }}
+          git push origin release/${{ steps.nextVersion.outputs.version }}
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          head: release/${{ github.event.inputs.target_version }}
+          head: release/${{ steps.nextVersion.outputs.version }}
           base: main
-          title: Release version ${{ github.event.inputs.target_version }}
+          title: Release version ${{ steps.nextVersion.outputs.version }}
           # By default, we request a review from the person who triggered the workflow.
           reviewers: ${{ github.actor }}
           body: |
