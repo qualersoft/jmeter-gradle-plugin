@@ -1,9 +1,9 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
 import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
-import de.qualersoft.jmeter.gradleplugin.JMETER_EXEC
-import de.qualersoft.jmeter.gradleplugin.JMETER_EXTENSION
-import de.qualersoft.jmeter.gradleplugin.JMETER_TOOL
+import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
+import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
+import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
 import de.qualersoft.jmeter.gradleplugin.copyToDir
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -187,8 +187,8 @@ abstract class JMeterBaseTask : JavaExec() {
     extDir.mkdirs()
     junitDir.mkdirs()
 
-    resolveExtensionLibs(JMETER_EXTENSION, extDir, libDir)
-    resolveToolLibs(JMETER_TOOL, libDir)
+    resolveExtensionLibs(JMETER_PLUGIN_DEPENDENCY, extDir, libDir)
+    resolveToolLibs(JMETER_LIB_DEPENDENCY, libDir)
 
     if (maxHeap.isPresent) {
       maxHeapSize = maxHeap.get()
@@ -238,7 +238,7 @@ abstract class JMeterBaseTask : JavaExec() {
   private fun getJMeterLib(): File {
     val jmTool = jmExt.tool
     val artifacts: Set<ResolvedArtifact> = project.configurations
-      .getByName(JMETER_EXEC)
+      .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
     return artifacts.find {
       val id = it.moduleVersion.id

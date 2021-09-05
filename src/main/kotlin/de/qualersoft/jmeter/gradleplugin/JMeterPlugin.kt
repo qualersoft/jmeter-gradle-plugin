@@ -5,8 +5,6 @@ package de.qualersoft.jmeter.gradleplugin
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Delete
@@ -16,9 +14,9 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 private const val EXTENSION_NAME = "jmeter"
 
-const val JMETER_EXEC = "jmeterExec"
-const val JMETER_EXTENSION = "jmeterExtension"
-const val JMETER_TOOL = "jmeterTool"
+const val JMETER_RUNNER = "jmeterRunner"
+const val JMETER_PLUGIN_DEPENDENCY = "jmeterPlugin"
+const val JMETER_LIB_DEPENDENCY = "jmeterLibrary"
 
 class JMeterPlugin : Plugin<Project> {
 
@@ -39,26 +37,27 @@ class JMeterPlugin : Plugin<Project> {
       registerTasks(it)
 
       // register the jmeter tool with it's desired version
-      val jmExec = project.configurations.named(JMETER_EXEC).get()
-      jmExt.tool.applyTo(jmExec)
+      val jmRunner = project.configurations.named(JMETER_RUNNER).get()
+      jmExt.tool.applyTo(jmRunner)
 
       // apply jmeter extensions
-      val jmComp = project.configurations.named(JMETER_EXTENSION).get()
+      val jmComp = project.configurations.named(JMETER_PLUGIN_DEPENDENCY).get()
       jmExt.tool.applyApacheComponents(jmComp)
     }
   }
 
   private fun registerConfiguration(project: Project) {
-    val execConf = project.configurations.maybeCreate(JMETER_EXEC)
-    execConf.isVisible = false
+    val runnerConf = project.configurations.maybeCreate(JMETER_RUNNER)
+    runnerConf.isVisible = false
+    runnerConf.description = "The jmeter runner to use. Only for internal purposes!"
 
-    val jmComp = project.configurations.maybeCreate(JMETER_EXTENSION)
+    val jmComp = project.configurations.maybeCreate(JMETER_PLUGIN_DEPENDENCY)
     jmComp.description = "JMeter extensions like 3rd party plugins. See `jmCoreExt` for easy adding jmeter extensions."
     jmComp.isVisible = true
     jmComp.isCanBeConsumed = false
     jmComp.isCanBeResolved = true
 
-    val tools = project.configurations.maybeCreate(JMETER_TOOL)
+    val tools = project.configurations.maybeCreate(JMETER_LIB_DEPENDENCY)
     tools.description = "Additional tool libraries that can be used within jmeter scripts. E.g. apache-commons"
   }
 

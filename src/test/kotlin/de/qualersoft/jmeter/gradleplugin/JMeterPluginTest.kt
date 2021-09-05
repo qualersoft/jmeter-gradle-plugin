@@ -18,19 +18,19 @@ class JMeterPluginTest {
   @Test
   fun `plugin should register configuration to tool jar`() {
     val project = applyPlugin()
-    project.configurations.findByName(JMETER_TOOL) shouldNot beNull()
+    project.configurations.findByName(JMETER_LIB_DEPENDENCY) shouldNot beNull()
   }
 
   @Test
   fun `plugin should register extension configuration`() {
     val prj = applyPlugin()
-    prj.configurations.findByName(JMETER_EXTENSION) shouldNot beNull()
+    prj.configurations.findByName(JMETER_PLUGIN_DEPENDENCY) shouldNot beNull()
   }
 
   @Test
   fun `plugin should register tool configuration`() {
     val prj = applyPlugin()
-    prj.configurations.findByName(JMETER_TOOL) shouldNot beNull()
+    prj.configurations.findByName(JMETER_LIB_DEPENDENCY) shouldNot beNull()
   }
 
   private fun applyPlugin() = ProjectBuilder.builder().build().also {
