@@ -87,6 +87,13 @@ jobs:
           git checkout -b develop origin/develop
           git merge main --allow-unrelated-histories --strategy=recursive -Xtheirs --no-commit
 
+      - name: "Update changelog"
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
+          arguments: patchChangelog
+
       - name: "Create next version"
         uses: burrunan/gradle-cache-action@v1
         with:
@@ -94,13 +101,6 @@ jobs:
           save-local-build-cache: false
           arguments: updateVersion
           properties: kind=snapshot
-
-      - name: "Update changelog"
-        uses: burrunan/gradle-cache-action@v1
-        with:
-          remote-build-cache-proxy-enabled: false
-          save-local-build-cache: false
-          arguments: patchChangelog
 
       - name: Commit changes
         run: |

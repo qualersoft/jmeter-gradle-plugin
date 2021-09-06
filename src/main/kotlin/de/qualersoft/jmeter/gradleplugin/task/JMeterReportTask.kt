@@ -30,20 +30,7 @@ open class JMeterReportTask : JMeterBaseTask() {
 
   override fun processResources(jmBinDir: File) {
     super.processResources(jmBinDir)
-    copyRespectProperty(jmExt.tool.reportGeneratorPropertyFile, "reportgenerator.properties", jmBinDir)
-    // copy report-template dir
-    val destReportTempDir = jmBinDir.resolve("report-template")
-    if (reportTemplate.isPresent) {
-      reportTemplate.asFile.get().copyRecursively(destReportTempDir, true)
-    } else {
-      // copy from jar
-      // ensure directory exists
-      if (destReportTempDir.exists()) {
-        destReportTempDir.delete()
-      }
-      destReportTempDir.mkdirs()
-      CopyResource.copyJarEntriesToFolder("report-template", destReportTempDir)
-    }
+    copyReportTemplate(reportTemplate, jmBinDir)
   }
 
   override fun createRunArguments(): MutableList<String> = mutableListOf<String>().apply {

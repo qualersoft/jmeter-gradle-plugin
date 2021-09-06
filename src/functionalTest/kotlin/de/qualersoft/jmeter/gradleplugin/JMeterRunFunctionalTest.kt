@@ -6,6 +6,7 @@ package de.qualersoft.jmeter.gradleplugin
 import io.kotest.matchers.file.exist
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -121,6 +122,23 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
       { runShouldFail(result, "Build failed with an exception") },
       { out shouldContain "No jmx file specified! Taking any from" },
       { out shouldContain "Collection is empty" }
+    )
+  }
+  
+  @Test
+  @KotlinTag
+  fun `run with report shall generate a report`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("runWithReport_build").withArguments("runTest")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val report = runner.projectDir.resolve("build/reports/jmeter/index.html")
+    val out = result.output
+    assertAll(
+      { out shouldNot contain("Problem loading properties\\. java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()) },
+      { report should exist() }
     )
   }
 }

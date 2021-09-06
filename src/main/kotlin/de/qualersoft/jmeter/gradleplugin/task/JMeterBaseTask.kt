@@ -1,5 +1,6 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
+import de.qualersoft.jmeter.gradleplugin.CopyResource
 import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
 import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
 import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
@@ -163,6 +164,30 @@ abstract class JMeterBaseTask : JavaExec() {
       property.asFile.get().copyToDir(toDir)
     } else {
       toDir.copyFromResourceFile(resource)
+    }
+  }
+
+  /**
+   * Copies the report-template either from given directory property if present or
+   * from bundled to the jmeter-bin directory.
+   * 
+   * @param reportTemplate The property pointing to the custom report template.
+   * @param jmBinDir The target directory to which to copy the template.
+   */
+  protected fun copyReportTemplate(reportTemplate: DirectoryProperty, jmBinDir: File) {
+    copyRespectProperty(jmExt.tool.reportGeneratorPropertyFile, "reportgenerator.properties", jmBinDir)
+    // copy report-template dir
+    val destReportTempDir = jmBinDir.resolve("report-template")
+    if (reportTemplate.isPresent) {
+      reportTemplate.asFile.get().copyRecursively(destReportTempDir, true)
+    } else {
+      // copy from jar
+      // ensure directory exists
+      if (destReportTempDir.exists()) {
+        destReportTempDir.delete()
+      }
+      destReportTempDir.mkdirs()
+      CopyResource.copyJarEntriesToFolder("report-template", destReportTempDir)
     }
   }
 
