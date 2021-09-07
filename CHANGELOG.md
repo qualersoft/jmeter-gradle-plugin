@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 ### Fixed
-- Run-Task now respects report settings (#6)
+- `Run` task now respects report settings (#6)
+- `Report` task now respect jmeter property settings (#11)
 
 ## [1.0.0]
 ### Added

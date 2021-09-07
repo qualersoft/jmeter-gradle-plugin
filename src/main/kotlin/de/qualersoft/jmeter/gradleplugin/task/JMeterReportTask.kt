@@ -46,6 +46,10 @@ open class JMeterReportTask : JMeterBaseTask() {
     add("-j")
     add(resultDirectory.file("${src.nameWithoutExtension}.log").get().asFile.absolutePath)
 
+    jmeterProperties.get().forEach { (k, v) ->
+      add("-J$k=$v")
+    }
+
     // user properties file goes first to allow override by dedicated user properties
     if (globalPropertiesFile.isPresent) {
       add("-G${globalPropertiesFile.get().asFile.absolutePath}")

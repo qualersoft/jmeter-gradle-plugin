@@ -68,4 +68,27 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
     val args = task.createRunArguments()
     args should contain("-GGlobal=property")
   }
+
+  @Test
+  fun argsWithJMeterPropertiesFromExtension() {
+    val task = createTaskWithConfig<JMeterReportTask>({
+      jmeterProperties.put("ABC", "xyz")
+    }, {
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    args should contain("-JABC=xyz")
+  }
+
+  @Test
+  fun argsWithJMeterPropertiesFromTask() {
+    val task = createTaskWithConfig<JMeterReportTask>({}, {
+      jmeterProperties.put("ASD", "roxx")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val result = task.createRunArguments()
+    result should contain("-JASD=roxx")
+  }
 }
