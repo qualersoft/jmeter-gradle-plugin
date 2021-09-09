@@ -6,6 +6,7 @@ package de.qualersoft.jmeter.gradleplugin
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -86,6 +87,8 @@ class JMeterPlugin : Plugin<Project> {
     }
   }
 }
+
+internal fun ObjectFactory.propertyMap() = this.mapProperty(String::class.java, String::class.java)
 
 /**
  * Main

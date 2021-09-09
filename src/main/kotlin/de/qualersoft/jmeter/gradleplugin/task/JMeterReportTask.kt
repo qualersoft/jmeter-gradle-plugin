@@ -3,6 +3,7 @@ package de.qualersoft.jmeter.gradleplugin.task
 import de.qualersoft.jmeter.gradleplugin.CopyResource
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
@@ -28,39 +29,29 @@ open class JMeterReportTask : JMeterBaseTask() {
     jmExt.tool.reportTemplateDirectory
   )
 
+  /**
+   * Force jmeter to delete/override any existing output.
+   * If `false` but output exists, jmeter fails!
+   *
+   * Defaults to `false`
+   */
+  @Input
+  var deleteResults: Boolean = false
+
   override fun processResources(jmBinDir: File) {
     super.processResources(jmBinDir)
     copyReportTemplate(reportTemplate, jmBinDir)
   }
 
   override fun createRunArguments(): MutableList<String> = mutableListOf<String>().apply {
-    val src = sourceFile.asFile.get()
-    // result file
-    add("-g")
-    add(resultDirectory.file("${src.nameWithoutExtension}.jtl").get().asFile.absolutePath)
-    // output dir
-    add("-o")
-    add(reportDir.file(src.nameWithoutExtension).get().asFile.absolutePath)
+    addAll(super.createRunArguments())
 
-    // log file
-    add("-j")
-    add(resultDirectory.file("${src.nameWithoutExtension}.log").get().asFile.absolutePath)
+    addJmxFile(this)
 
-    jmeterProperties.get().forEach { (k, v) ->
-      add("-J$k=$v")
-    }
+    addResultFile(this, true)
 
-    // user properties file goes first to allow override by dedicated user properties
-    if (globalPropertiesFile.isPresent) {
-      add("-G${globalPropertiesFile.get().asFile.absolutePath}")
-    }
+    addReport(this)
 
-    globalProperties.get().forEach { (k, v) ->
-      add("-G$k=$v")
-    }
-
-    if (deleteResults) {
-      add("-f")
-    }
+    addDelete(this, deleteResults)
   }
 }

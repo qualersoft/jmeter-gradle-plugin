@@ -1,76 +1,34 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
+import de.qualersoft.jmeter.gradleplugin.JMeterExtension
+import de.qualersoft.jmeter.gradleplugin.PluginTestBase
 import de.qualersoft.jmeter.gradleplugin.entryEndsWith
 import de.qualersoft.jmeter.gradleplugin.entryStartsWith
 import de.qualersoft.jmeter.gradleplugin.matchingEntry
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.contain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldHave
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotHave
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldEndWith
+import io.kotest.matchers.types.beInstanceOf
+import io.kotest.matchers.types.beOfType
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.io.File
 import io.kotest.matchers.collections.beEmpty as beEmptyList
-import io.kotest.matchers.maps.beEmpty as beEmptyMap
 
 /**
  * Remarks: Because gui task is basically a JMeterBaseTask,
  * test are targeting on property chaining
  */
 class JMeterGuiTaskTest : JMeterTaskTestBase() {
-
-  @Test
-  fun taskWithNoConfigShouldInheritDefaultConfig() {
-    val task = createTask<JMeterGuiTask> { }.get()
-
-    assertAll(
-      { withClue("jmxFile should not be present") { task.jmxFile.isPresent shouldBe false } },
-      {
-        assertAll(
-          { withClue("jmeter properties should be present") { task.jmeterProperties.isPresent shouldBe true } },
-          { task.jmeterProperties.get() should beEmptyMap() }
-        )
-      },
-      { withClue("global properties file must not be present") { task.globalPropertiesFile.isPresent shouldBe false } },
-      {
-        assertAll(
-          "globale Properties",
-          { withClue("must be present") { task.globalProperties.isPresent shouldBe true } },
-          { withClue("must be empty") { task.globalProperties.get() should beEmptyMap() } },
-        )
-      },
-      {
-        val repDir = task.reportDir
-        assertAll("Report dir",
-          withClue("must be present") { { repDir.isPresent shouldBe true } },
-          { repDir.get().asFile.path shouldEndWith "jmeter" },
-          { repDir.get().asFile.path shouldContain "[\\\\/]reports[\\\\/]".toRegex() }
-        )
-      },
-      {
-        val resDir = task.resultDirectory
-        assertAll("Result dir",
-          { withClue("must be present") { resDir.isPresent shouldBe true } },
-          { resDir.get().asFile.path shouldContain "[\\\\/]test-results[\\\\/]".toRegex() },
-          { resDir.get().asFile.path shouldEndWith "jmeter" }
-        )
-      },
-      {
-        withClue("Delete results should be false") { task.deleteResults shouldBe false }
-      },
-      {
-        withClue("No default max heap size") { task.maxHeap.isPresent shouldBe false }
-      }
-    )
-  }
 
   @Test
   fun taskShouldInheritGlobalPropertiesFromExtension() {
@@ -114,14 +72,8 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
   }
 
   @Test
-  fun taskMustHaveJmxFileConfigured() {
-    val task = createTask<JMeterGuiTask> { }.get()
-    shouldThrow<NoSuchElementException> { task.createRunArguments() }
-  }
-
-  @Test
   fun taskWithJustJmxFileIsEnough() {
-    val task = createTaskWithConfig<JMeterGuiTask>({}, {
+    val task = createTaskWithConfig<JMeterGuiTask>({ }, {
       jmxFile.set("Test.jmx")
     }).get()
 
@@ -130,24 +82,12 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
       { args shouldNot beEmptyList() },
       { withClue("test file flag") { args should contain("-t") } },
       { args shouldHave entryEndsWith("Test.jmx") },
-      { withClue("result file flag") { args should contain("-l") } },
-      { args shouldHave entryEndsWith("Test.jtl") },
       { withClue("log file flag") { args should contain("-j") } },
-      { args shouldHave entryEndsWith("Test.log") },
+      { args shouldHave entryEndsWith("jmeter.log") },
       { withClue("jMeterProperty") { args shouldNotHave entryStartsWith("-J") } },
       { withClue("globalProperty") { args shouldNotHave entryStartsWith("-G") } },
       { withClue("delete flag") { args shouldNot contain("-f") } }
     )
-  }
-
-  @Test
-  fun taskWithDeleteEnabledFlag() {
-    val task = createTaskWithConfig<JMeterGuiTask>({}, {
-      jmxFile.set("Test.jmx")
-      deleteResults = true
-    }).get()
-    val args = task.createRunArguments()
-    args should contain("-f")
   }
 
   @Test
@@ -209,18 +149,33 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
   }
 
   @Test
-  fun runArgsWithJMeterProperties() {
-    val task = createTaskWithConfig<JMeterGuiTask>({
-      jmeterProperties.put("conf", "prop1")
-    }, {
-      jmeterProperties.put("task", "prop2")
-      jmxFile.set("Test.jmx")
-    }).get()
+  fun canCreateGuiTaskFromExtension() {
+    val project = createProject()
+    val ext = project.extensions.getByType(JMeterExtension::class.java)
+    ext.withGuiTask("guiTestTask")
 
-    val args = task.createRunArguments()
+    val result = project.tasks.getByName("guiTestTask")
     assertAll(
-      { args should contain("-Jconf=prop1") },
-      { args should contain("-Jtask=prop2") }
+      { result shouldNot beNull() },
+      { result should beInstanceOf<JMeterGuiTask>() },
+      { project.tasks.withType(JMeterGuiTask::class.java) shouldHaveSize 1 }
     )
   }
+
+  @Test
+  fun canCreateGuiTaskFromExtensionAndApplyConfig() {
+    val project = createProject()
+    val ext = project.extensions.getByType(JMeterExtension::class.java)
+    ext.withGuiTask("configuredGuiTask") {
+      it.jmxFile.set("test.jmx")
+    }
+
+    val result = project.tasks.getByName("configuredGuiTask")
+    (result as JMeterGuiTask).jmxFile.get() shouldBe "test.jmx"
+  }
+
+  private fun createProject() = ProjectBuilder.builder().build()
+    .also {
+      it.plugins.apply(PluginTestBase.PLUGIN_ID)
+    }
 }

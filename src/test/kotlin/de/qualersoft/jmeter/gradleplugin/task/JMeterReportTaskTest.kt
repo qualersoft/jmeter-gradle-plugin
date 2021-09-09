@@ -29,7 +29,7 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
       { withClue("report dir flag") { args should contain("-o") } },
       { args shouldHave entryEndsWith("reports${sep}jmeter${sep}Report") },
       { withClue("log file flag") { args should contain("-j") } },
-      { args shouldHave entryEndsWith("Report.log") },
+      { args shouldHave entryEndsWith("jmeter.log") },
       { withClue("No global properies") { args shouldNotHave entryStartsWith("-G") } },
       { withClue("No delete flag") { args shouldNot contain("-f") } }
     )
@@ -44,29 +44,6 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
 
     val args = task.createRunArguments()
     args should contain("-f")
-  }
-
-  @Test
-  fun argsWithGlobalPropertyFile() {
-    val propFile = "GlobPropFile.properties"
-    val task = createTaskWithConfig<JMeterReportTask>({}, {
-      globalPropertiesFile.set(File(propFile))
-      jmxFile.set("Report.jmx")
-    }).get()
-
-    val args = task.createRunArguments()
-    args shouldHave matchingEntry("-G[^=]+$propFile".toRegex())
-  }
-
-  @Test
-  fun argsWithGlobalProperties() {
-    val task = createTaskWithConfig<JMeterReportTask>({}, {
-      globalProperties.put("Global", "property")
-      jmxFile.set("Report.jmx")
-    }).get()
-
-    val args = task.createRunArguments()
-    args should contain("-GGlobal=property")
   }
 
   @Test

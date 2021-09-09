@@ -16,8 +16,6 @@ import org.gradle.api.provider.Property
  * 
  * Provides settings for the used dependency of the main runner ([group], [name], [version], main class[mainClass]).
  * As well as configuration settings for:
- * - [jmeter.properties][jmeterPropertyFile],
- * - [log4j2.xml][logConfig],
  * - [report-template folder][reportTemplateDirectory],
  * - [reportgenerator.properties][reportGeneratorPropertyFile],
  * - [saveservice.properties][saveServicePropertyFile],
@@ -72,17 +70,6 @@ class JMeterConfig(private val project: Project) {
   //</editor-fold>
 
   //<editor-fold desc="Configuration files">
-  /**
-   * Path to the `jmeter.properties` file required by jmeters.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the file bundled with the plugin.
-   */
-  val jmeterPropertyFile: RegularFileProperty = objects.fileProperty()
 
   /**
    * Path to the report-template folder required by the report generator.
@@ -94,19 +81,9 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the folder bundled with the plugin.
    */
+  // TODO: Move to extension & task(s) -> in task has to be mapped as 
+  //  additional jmeterproperty (-J) 'jmeter.reportgenerator.exporter.html.property.template_dir'
   val reportTemplateDirectory: DirectoryProperty = objects.directoryProperty()
-
-  /**
-   * Path to the logger-configuration file (attow `log4j.xml`) required by jmeter.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the file bundled with the plugin.
-   */
-  val logConfig: RegularFileProperty = objects.fileProperty()
 
   /**
    * Path to the reportgenerator.properties file required by the report generator.
