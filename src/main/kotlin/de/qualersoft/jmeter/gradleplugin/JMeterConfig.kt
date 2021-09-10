@@ -81,7 +81,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to the folder bundled with the plugin.
    */
-  // TODO: Move to extension & task(s) -> in task has to be mapped as 
+  // TASK: Move to extension & task(s) -> in task has to be mapped as 
   //  additional jmeterproperty (-J) 'jmeter.reportgenerator.exporter.html.property.template_dir'
   val reportTemplateDirectory: DirectoryProperty = objects.directoryProperty()
 

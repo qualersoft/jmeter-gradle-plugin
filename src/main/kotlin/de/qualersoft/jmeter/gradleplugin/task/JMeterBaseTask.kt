@@ -151,7 +151,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   protected open fun processResources(jmBinDir: File) {
     val tool = jmExt.tool
-    // TODO: Will be removed with #14
+    // TASK: Will be removed with #14
     copyRespectProperty(jmExt.logConfig, "log4j2.xml", jmBinDir)
     copyRespectProperty(jmExt.mainPropertyFile, "jmeter.properties", jmBinDir)
     copyRespectProperty(tool.upgradePropertyFile, "upgrade.properties", jmBinDir)
