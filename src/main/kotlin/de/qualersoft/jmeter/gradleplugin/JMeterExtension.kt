@@ -3,6 +3,7 @@ package de.qualersoft.jmeter.gradleplugin
 import de.qualersoft.jmeter.gradleplugin.task.JMeterGuiTask
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
@@ -38,6 +39,47 @@ open class JMeterExtension(private val project: Project) {
     action.execute(tool)
   }
 
+  //<editor-fold desc="JMeter-Property configurations">
+  val sysPropertyFile: RegularFileProperty = objects.fileProperty()
+  val systemProperties: MapProperty<String, String> = objects.propertyMap()
+  
+  val mainPropertyFile: RegularFileProperty = objects.fileProperty()
+  val additionalPropertyFiles: ConfigurableFileCollection = objects.fileCollection()
+
+  /**
+   * Dedicated properties send to local JMeter only.
+   */
+  val jmeterProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+
+  /**
+   * Path to a JMeter property file which will be sent to all remote server.
+   */
+  val globalPropertiesFile: RegularFileProperty = objects.fileProperty()
+
+  /**
+   * Dedicated user properties send to all remote server.
+   */
+  val globalProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+  //</editor-fold>
+
+  //<editor-fold desc="Logging configuration">
+  /**
+   * Path to the logger-configuration file (attow `log4j.xml`) required by jmeter.
+   *
+   * Defaults to the file bundled with the plugin.
+   */
+  val logConfig: RegularFileProperty = objects.fileProperty()
+
+  /**
+   * File where jmeter log will be written to.
+   * 
+   * Defaults to `<buildDir>/logs/jmeter.log`
+   */
+  val logOutputFile: RegularFileProperty = objects.fileProperty().convention( 
+    layout.buildDirectory.file("logs/jmeter.log")
+  )
+  //</editor-fold>
+
   /**
    * Root directory used by tasks to resolve its jmxFile.
    *
@@ -64,21 +106,6 @@ open class JMeterExtension(private val project: Project) {
   val reportDir: DirectoryProperty = objects.directoryProperty().convention(
     layout.buildDirectory.dir("reports/jmeter")
   )
-
-  /**
-   * Dedicated properties send to local JMeter only.
-   */
-  val jmeterProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
-
-  /**
-   * Path to a JMeter property file which will be sent to all remote server.
-   */
-  val globalPropertiesFile: RegularFileProperty = objects.fileProperty()
-
-  /**
-   * Dedicated user properties send to all remote server.
-   */
-  val globalProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
   /**
    * Declares the maximum heap size of the JVM process.

@@ -96,21 +96,6 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   @KotlinTag
-  fun `no jmx files specified but on present, should use it`() {
-    rootFolder = { "runTest" }
-    val runner = setupKotlinTest("noJmxFileGiven_build").withArguments("runTest")
-    copyJmxToDefaultLocation()
-
-    val result = runner.build()
-
-    val out = result.output
-    assertAll(
-      out shouldContain "No jmx file specified! Taking any from"
-    )
-  }
-
-  @Test
-  @KotlinTag
   fun `no jmx files specified and no present should fail`() {
     rootFolder = { "runTest" }
     val runner = setupKotlinTest("noJmxFileGiven_build").withArguments("runTest")
@@ -118,11 +103,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val result = runner.buildAndFail()
 
     val out = result.output
-    assertAll(
-      { runShouldFail(result, "Build failed with an exception") },
-      { out shouldContain "No jmx file specified! Taking any from" },
-      { out shouldContain "Collection is empty" }
-    )
+    runShouldFail(result, "Build failed with an exception")
   }
   
   @Test
@@ -134,7 +115,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val result = runner.build()
 
-    val report = runner.projectDir.resolve("build/reports/jmeter/index.html")
+    val report = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
     val out = result.output
     assertAll(
       { out shouldNot contain("Problem loading properties\\. java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()) },

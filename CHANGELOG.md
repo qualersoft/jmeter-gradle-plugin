@@ -16,6 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+### Added
+- Support for more jmeter cli properties (#12)
+
+### Changed
+- Restructured available task properties (#12)
+
 ### Fixed
 - `Run` task now respects report settings (#6)
 - `Report` task now respect jmeter property settings (#11)
