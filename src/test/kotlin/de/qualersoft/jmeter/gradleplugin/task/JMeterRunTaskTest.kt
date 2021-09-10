@@ -67,4 +67,26 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
     val args = task.createRunArguments()
     args should contain("-GGlobal=property")
   }
+
+  @Test
+  fun withDeleteFlag() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      deleteResults = true
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    args should contain("-f")
+  }
+
+  @Test
+  fun withoutDeleteFlag() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      deleteResults = false
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    args shouldNot contain("-f")
+  }
 }

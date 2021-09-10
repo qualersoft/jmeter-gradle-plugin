@@ -71,11 +71,11 @@ open class JMeterExtension(private val project: Project) {
   val logConfig: RegularFileProperty = objects.fileProperty()
 
   /**
-   * Place where the JMeter logfile shall be stored.
+   * File where jmeter log will be written to.
    * 
    * Defaults to `<buildDir>/logs/jmeter.log`
    */
-  val logOutputFile: RegularFileProperty = objects.fileProperty().convention ( 
+  val logOutputFile: RegularFileProperty = objects.fileProperty().convention( 
     layout.buildDirectory.file("logs/jmeter.log")
   )
   //</editor-fold>

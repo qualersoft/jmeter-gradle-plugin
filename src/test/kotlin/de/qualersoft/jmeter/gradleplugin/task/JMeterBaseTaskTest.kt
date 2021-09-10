@@ -14,10 +14,12 @@ import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldHave
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldEndWith
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.match
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
+import java.io.File
 
 class JMeterBaseTaskTest : JMeterTaskTestBase() {
 
@@ -189,6 +191,7 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
   }
   //</editor-fold>
 
+  //<editor-fold desc="jmeter Properties">
   @Test
   fun jmeterPropertiesDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -225,17 +228,129 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
 
   @Test
   fun jmeterPropertiesMustPutToRunArguments() {
-    val task = createTask<JMeterBaseTask> { 
+    val task = createTask<JMeterBaseTask> {
       jmeterProperties.put("argKey", "argVal")
     }.get()
-    
-    val result = task.createRunArguments()
-    result should contain("-jargKey=argVal")
-  }
-  
-  // logConfig
 
-  // logOutputFile (default)
+    val result = task.createRunArguments()
+    result should contain("-JargKey=argVal")
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="log config">
+  @Test
+  fun noLogConfigByDefault() {
+    val task = createTask<JMeterBaseTask> { }.get()
+
+    val args = task.createRunArguments()
+
+    args shouldNot contain("-i")
+  }
+
+  @Test
+  fun taskMustRespectLogConfig() {
+    val task = createTask<JMeterBaseTask> {
+      logConfig.set(project.file("myCustomLogConf.xml"))
+    }.get()
+
+    val args = task.createRunArguments()
+
+    assertAll(
+      { withClue("logConfig flag exists") { args should contain("-i") } },
+      { args shouldHave matchingEntry(".*myCustomLogConf.xml".toRegex()) }
+    )
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="logOutputFile">
+  @Test
+  fun logOutputHasDefault() {
+    val task = createTask<JMeterBaseTask> { }.get()
+
+    assertAll(
+      { withClue("Log file should exist") { task.logOutputFile.isPresent shouldBe true } },
+      { task.logOutputFile.get().asFile.name shouldBe "jmeter.log" }
+    )
+  }
+
+  @Test
+  fun taskMustInheritLogOutputFile() {
+    val task = createTask<JMeterBaseTask> {
+      logOutputFile.set(project.file("customExt.log"))
+    }.get()
+
+    task.logOutputFile.get().asFile.name shouldBe "customExt.log"
+  }
+
+  @Test
+  fun logOutputFileCanBeOverriddenByTask() {
+    val task = createTaskWithConfig<JMeterBaseTask>({ }, {
+      logOutputFile.set(project.file("task.log"))
+    }).get()
+    task.logOutputFile.get().asFile.name shouldBe "task.log"
+  }
+
+  @Test
+  fun logOutputFileMustPutToRunArguments() {
+    val task = createTask<JMeterBaseTask> {
+      logOutputFile.set(project.file("args.log"))
+    }.get()
+
+    val result = task.createRunArguments()
+    assertAll(
+      { withClue("logOutput flag") { result should contain("-j") } },
+      { result shouldHave matchingEntry(".*args\\.log".toRegex()) }
+    )
+  }
+
+  @Test
+  fun unsetLogOutputIsNotInRunArguments() {
+    val task = createTaskWithConfig<JMeterBaseTask>({ }, {
+      logOutputFile.set(null as File?)
+    }).get()
+
+    val result = task.createRunArguments()
+    withClue("logOutput flag") { result shouldNot contain("-j") }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="JMX-file">
+  @Test
+  fun noDefaultJmxFile() {
+    val task = createTask<JMeterBaseTask> { }.get()
+    task.jmxFile.isPresent shouldBe false
+  }
+
+  @Test
+  fun jmxFileIsMandatoryOnResolution() {
+    val task = createTask<JMeterBaseTask> { }.get()
+
+    assertThrows<IllegalStateException> {
+      task.sourceFile.get()
+    }
+  }
+
+  @Test
+  fun relativeJmxFileGetsResolvedAgainstRoot() {
+    val task = createTaskWithConfig<JMeterBaseTask>({ }, {
+      jmxFile.set("relative.jmx")
+    }).get()
+
+    task.sourceFile.get().asFile shouldBe project.file("src/test/jmeter/relative.jmx")
+  }
+
+  @Test
+  fun absoluteJmxFileWillNotResolvedAgainstRoot() {
+    val task = createTaskWithConfig<JMeterBaseTask>({ }, {
+      jmxFile.set(project.projectDir.resolve("/absolute.jmx").absolutePath)
+    }).get()
+
+    assertAll(
+      { task.sourceFile.get().asFile shouldBe project.projectDir.resolve("/absolute.jmx").absoluteFile },
+      { task.sourceFile.get().asFile.absolutePath shouldNot match(".*src[/\\\\]test[/\\\\]jmeter".toRegex()) }
+    )
+  }
+  //</editor-fold>
 
   @Test
   fun taskWithNoConfigShouldInheritDefaultConfig() {
@@ -243,28 +358,6 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
 
     assertAll(
       { withClue("jmxFile should not be present") { task.jmxFile.isPresent shouldBe false } },
-      {
-        assertAll(
-          { withClue("jmeter properties should be present") { task.jmeterProperties.isPresent shouldBe true } },
-          { task.jmeterProperties.get() should beEmpty() }
-        )
-      },
-      {
-        val repDir = task.reportDir
-        assertAll("Report dir",
-          withClue("must be present") { { repDir.isPresent shouldBe true } },
-          { repDir.get().asFile.path shouldEndWith "jmeter" },
-          { repDir.get().asFile.path shouldContain "[\\\\/]reports[\\\\/]".toRegex() }
-        )
-      },
-      {
-        val resDir = task.resultDirectory
-        assertAll("Result dir",
-          { withClue("must be present") { resDir.isPresent shouldBe true } },
-          { resDir.get().asFile.path shouldContain "[\\\\/]test-results[\\\\/]".toRegex() },
-          { resDir.get().asFile.path shouldEndWith "jmeter" }
-        )
-      },
       {
         withClue("No default max heap size") { task.maxHeap.isPresent shouldBe false }
       }

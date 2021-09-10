@@ -1,12 +1,9 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
-import de.qualersoft.jmeter.gradleplugin.CopyResource
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
@@ -21,7 +18,7 @@ import java.io.File
  */
 @Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Would love to execute jmeter tests more than once;)")
-open class JMeterRunTask : JMeterBaseTask() {
+open class JMeterRunTask : JMeterExecBaseTask() {
 
   /**
    * Path to a JMeter property file which will be sent to all remote server.
@@ -53,28 +50,6 @@ open class JMeterRunTask : JMeterBaseTask() {
   @Input
   var generateReport: Boolean = false
 
-  /**
-   * Path to a user defined report template folder.
-   * Must have name `report-template`.
-   *
-   * Defaults to `jmeter.tool.reportTemplateFolder`. (If not set uses the bundled)
-   */
-  @InputDirectory
-  @PathSensitive(PathSensitivity.ABSOLUTE)
-  @Optional
-  val reportTemplate: DirectoryProperty = objectFactory.directoryProperty().value(
-    jmExt.tool.reportTemplateDirectory
-  )
-
-  /**
-   * Force jmeter to delete/override any existing output.
-   * If `false` but output exists, jmeter fails!
-   *
-   * Defaults to `false`
-   */
-  @Input
-  var deleteResults: Boolean = false
-
   override fun processResources(jmBinDir: File) {
     super.processResources(jmBinDir)
     if (generateReport) {
@@ -104,6 +79,6 @@ open class JMeterRunTask : JMeterBaseTask() {
       addReport(this)
     }
 
-    addDelete(this, deleteResults)
+    addDelete(this)
   }
 }

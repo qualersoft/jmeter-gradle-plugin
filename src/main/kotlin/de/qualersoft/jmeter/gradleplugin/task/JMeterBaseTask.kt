@@ -1,6 +1,5 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
-import de.qualersoft.jmeter.gradleplugin.CopyResource
 import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
 import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
 import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
@@ -11,7 +10,6 @@ import de.qualersoft.jmeter.gradleplugin.propertyMap
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -23,7 +21,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -54,13 +52,23 @@ abstract class JMeterBaseTask : JavaExec() {
   val jmSystemProperties: MapProperty<String, String> = objectFactory.propertyMap()
     .value(jmExt.systemProperties)
 
+  /**
+   * Main jmeter property file.
+   * 
+   * Inherited from [JMeterExtension.mainPropertyFile].
+   */
   @InputFile
   @Optional
   @PathSensitive(PathSensitivity.ABSOLUTE)
   val mainPropertyFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.mainPropertyFile)
 
-  // TODO Not quite sure if this will work as expected
+  /**
+   * Additional property files.
+   * 
+   * Inherited from [JMeterExtension.additionalPropertyFiles].
+   * To override use `setFrom`, to extend use `from`.
+   */
   @InputFiles
   @Optional
   @PathSensitive(PathSensitivity.ABSOLUTE)
@@ -70,20 +78,28 @@ abstract class JMeterBaseTask : JavaExec() {
   /**
    * Dedicated properties send to local JMeter only.
    *
-   * Inherited from [JMeterExtension.jmeterProperties]
+   * Inherited from [JMeterExtension.jmeterProperties].
    */
   @Input
   @Optional
   val jmeterProperties: MapProperty<String, String> = objectFactory.propertyMap()
     .value(jmExt.jmeterProperties)
 
-  @Internal
+  /**
+   * File where jmeter log will be written to.
+   * 
+   * Inherited from [JMeterExtension.logOutputFile].
+   */
+  @OutputFile
   @Optional
   val logOutputFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.logOutputFile)
 
   /**
-   * The jmx-file to use. If omitted, any jmx-file under [JMeterExtension.jmxRootDir] will be used.
+   * The jmx-file to use. Absolute or relative file.
+   * If relative it will be resolved against [JMeterExtension.jmxRootDir].
+   * Attention: Even if optional, [Run][JMeterRunTask] and [Report][JMeterReportTask] tasks
+   * require it!
    */
   @Input
   @Optional
@@ -94,29 +110,9 @@ abstract class JMeterBaseTask : JavaExec() {
    *
    * Just for internal usage
    */
-  @InputFile
-  @PathSensitive(PathSensitivity.ABSOLUTE)
-  protected val sourceFile: RegularFileProperty = objectFactory.fileProperty().fileProvider(resolveJmxFile())
-
-  /**
-   * Directory where to store the results.
-   *
-   * Inherited from [JMeterExtension.resultDir]
-   */
-  @OutputDirectory
-  // TODO: Maybe only for RunTask (maybe also GUI?)
-  val resultDirectory: DirectoryProperty = objectFactory.directoryProperty()
-    .value(jmExt.resultDir)
-
-
-  /**
-   * Directory where to create the report.
-   *
-   * Inherited from [JMeterExtension.reportDir]
-   */
-  @OutputDirectory
-  val reportDir: DirectoryProperty = objectFactory.directoryProperty()
-    .value(jmExt.reportDir)
+  @get:InputFile
+  @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  internal val sourceFile: RegularFileProperty = objectFactory.fileProperty().fileProvider(resolveJmxFile())
 
   /**
    *
@@ -132,7 +128,7 @@ abstract class JMeterBaseTask : JavaExec() {
     mainClass.value(jmExt.tool.mainClass)
   }
 
-  protected fun resolveJmxFile() = jmxFile.map {
+  private fun resolveJmxFile() = jmxFile.map {
       val file = File(it)
       if (file.isAbsolute) {
         file
@@ -167,30 +163,6 @@ abstract class JMeterBaseTask : JavaExec() {
       property.asFile.get().copyToDir(toDir)
     } else {
       toDir.copyFromResourceFile(resource)
-    }
-  }
-
-  /**
-   * Copies the report-template either from given directory property if present or
-   * from bundled to the jmeter-bin directory.
-   *
-   * @param reportTemplate The property pointing to the custom report template.
-   * @param jmBinDir The target directory to which to copy the template.
-   */
-  protected fun copyReportTemplate(reportTemplate: DirectoryProperty, jmBinDir: File) {
-    copyRespectProperty(jmExt.tool.reportGeneratorPropertyFile, "reportgenerator.properties", jmBinDir)
-    // copy report-template dir
-    val destReportTempDir = jmBinDir.resolve("report-template")
-    if (reportTemplate.isPresent) {
-      reportTemplate.asFile.get().copyRecursively(destReportTempDir, true)
-    } else {
-      // copy from jar
-      // ensure directory exists
-      if (destReportTempDir.exists()) {
-        destReportTempDir.delete()
-      }
-      destReportTempDir.mkdirs()
-      CopyResource.copyJarEntriesToFolder("report-template", destReportTempDir)
     }
   }
 
@@ -312,35 +284,10 @@ abstract class JMeterBaseTask : JavaExec() {
       add("-j")
       add(logOutputFile.get().asFile.absolutePath)
     }
-
-    
   }
 
   protected fun addJmxFile(args: MutableList<String>) = args.apply {
     add("-t")
     add(sourceFile.get().asFile.absolutePath) // test file
-  }
-
-  protected fun addResultFile(args: MutableList<String>, forReport: Boolean) = args.apply {
-    val file = sourceFile.get().asFile
-    // result file
-    if(forReport) {
-      add("-g")
-    } else {
-      add("-l")
-    }
-    add(resultDirectory.file("${file.nameWithoutExtension}.jtl").get().asFile.absolutePath)
-  }
-  
-  protected fun addReport(args: MutableList<String>) {
-    val file = sourceFile.get().asFile
-    args.add("-o")
-    args.add(reportDir.file(file.nameWithoutExtension).get().asFile.absolutePath)
-  }
-  
-  protected fun addDelete(args: MutableList<String>, deleteResults: Boolean) {
-    if (deleteResults) {
-      args.add("-f")
-    }
   }
 }
