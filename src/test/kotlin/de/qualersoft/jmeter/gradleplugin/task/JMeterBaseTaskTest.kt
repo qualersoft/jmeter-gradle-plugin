@@ -25,24 +25,24 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
 
   //<editor-fold desc="Sys-prop-file">
   @Test
-  fun systemPropertyFileDefaultsToUnset() {
+  fun systemPropertyFileDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> {}.get()
-    task.jmSystemPropertyFile.isPresent shouldBe false
+    task.jmSystemPropertyFiles.isEmpty shouldBe true
   }
 
   @Test
   fun taskMustInheritSystemPropertyFile() {
     val task = createTask<JMeterBaseTask> {
-      sysPropertyFile.set(project.file("testSysProps.properties"))
+      systemPropertyFiles.from(project.file("testSysProps.properties"))
     }.get()
 
-    task.jmSystemPropertyFile.get().asFile shouldBe project.file("testSysProps.properties")
+    task.jmSystemPropertyFiles shouldContain project.file("testSysProps.properties")
   }
 
   @Test
   fun systemPropertyFileMustPutToRunArguments() {
     val task = createTask<JMeterBaseTask> {
-      sysPropertyFile.set(project.file("sysPropsForArgs.properties"))
+      systemPropertyFiles.from(project.file("sysPropsForArgs.properties"))
     }.get()
 
     val result = task.createRunArguments()
@@ -187,7 +187,11 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
     }.get()
 
     val result = task.createRunArguments()
-    result shouldHave matchingEntry("-q.*Extension\\.file".toRegex())
+
+    assertAll(
+      { result shouldContain "-q" },
+      { result shouldHave entryEndsWith("Extension.file") }
+    )
   }
   //</editor-fold>
 

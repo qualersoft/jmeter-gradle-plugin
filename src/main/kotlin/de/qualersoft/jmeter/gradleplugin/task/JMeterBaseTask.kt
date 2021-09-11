@@ -42,7 +42,7 @@ abstract class JMeterBaseTask : JavaExec() {
   @Internal
   protected val jmExt: JMeterExtension = project.extensions.getByType(JMeterExtension::class.java)
 
-  @InputFile
+  @InputFiles
   @Optional
   @PathSensitive(PathSensitivity.ABSOLUTE)
   val jmSystemPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
