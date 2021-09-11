@@ -29,7 +29,7 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
       { withClue("report dir flag") { args should contain("-o") } },
       { args shouldHave entryEndsWith("reports${sep}jmeter${sep}Report") },
       { withClue("log file flag") { args should contain("-j") } },
-      { args shouldHave entryEndsWith("Report.log") },
+      { args shouldHave entryEndsWith("jmeter.log") },
       { withClue("No global properies") { args shouldNotHave entryStartsWith("-G") } },
       { withClue("No delete flag") { args shouldNot contain("-f") } }
     )
@@ -47,25 +47,48 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
   }
 
   @Test
-  fun argsWithGlobalPropertyFile() {
-    val propFile = "GlobPropFile.properties"
-    val task = createTaskWithConfig<JMeterReportTask>({}, {
-      globalPropertiesFile.set(File(propFile))
+  fun argsWithJMeterPropertiesFromExtension() {
+    val task = createTaskWithConfig<JMeterReportTask>({
+      jmeterProperties.put("ABC", "xyz")
+    }, {
       jmxFile.set("Report.jmx")
     }).get()
 
     val args = task.createRunArguments()
-    args shouldHave matchingEntry("-G[^=]+$propFile".toRegex())
+    args should contain("-JABC=xyz")
   }
 
   @Test
-  fun argsWithGlobalProperties() {
+  fun argsWithJMeterPropertiesFromTask() {
     val task = createTaskWithConfig<JMeterReportTask>({}, {
-      globalProperties.put("Global", "property")
+      jmeterProperties.put("ASD", "roxx")
       jmxFile.set("Report.jmx")
     }).get()
 
-    val args = task.createRunArguments()
-    args should contain("-GGlobal=property")
+    val result = task.createRunArguments()
+    result should contain("-JASD=roxx")
+  }
+
+  @Test
+  fun respectCustomReportTemplate() {
+    val task = createTaskWithConfig<JMeterReportTask>({}, {
+      customReportTemplateDirectory.set(project.file("custom-report"))
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val result = task.createRunArguments()
+    result shouldHave matchingEntry("-J.*=.*custom-report".toRegex())
+  }
+
+  @Test
+  fun respectCustomReportTemplateFromExtension() {
+    val task = createTaskWithConfig<JMeterReportTask>({
+      customReportTemplateDirectory.set(project.file("custom-extension-report"))
+    }, {
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val result = task.createRunArguments()
+    result shouldHave matchingEntry("-J.*=.*custom-extension-report".toRegex())
   }
 }

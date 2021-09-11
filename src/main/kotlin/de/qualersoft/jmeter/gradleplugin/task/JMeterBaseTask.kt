@@ -1,14 +1,15 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
-import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
-import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
-import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
+import de.qualersoft.jmeter.gradleplugin.CopyResource
 import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
+import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
+import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
 import de.qualersoft.jmeter.gradleplugin.copyToDir
+import de.qualersoft.jmeter.gradleplugin.propertyMap
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -16,15 +17,17 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import java.util.jar.JarFile
 
 /**
  * Base task for all JMeter*Tasks.
@@ -37,83 +40,83 @@ abstract class JMeterBaseTask : JavaExec() {
   private val log: Logger = Logging.getLogger(javaClass)
 
   @Internal
-  protected val jmExt = project.extensions.getByType(JMeterExtension::class.java)
+  protected val jmExt: JMeterExtension = project.extensions.getByType(JMeterExtension::class.java)
+
+  @InputFiles
+  @Optional
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  val jmSystemPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
+    .from(jmExt.systemPropertyFiles)
+
+  @Input
+  @Optional
+  val jmSystemProperties: MapProperty<String, String> = objectFactory.propertyMap()
+    .value(jmExt.systemProperties)
 
   /**
-   * The jmx-file to use. If omitted, any jmx-file under [JMeterExtension.jmxRootDir] will be used.
+   * Main jmeter property file.
+   *
+   * Inherited from [JMeterExtension.mainPropertyFile].
+   */
+  @InputFile
+  @Optional
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  val mainPropertyFile: RegularFileProperty = objectFactory.fileProperty()
+    .value(jmExt.mainPropertyFile)
+
+  /**
+   * Additional property files.
+   *
+   * Inherited from [JMeterExtension.additionalPropertyFiles].
+   * To override use `setFrom`, to extend use `from`.
+   */
+  @InputFiles
+  @Optional
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  val additionalPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
+    .from(jmExt.additionalPropertyFiles)
+
+  /**
+   * Dedicated properties send to local JMeter only.
+   *
+   * Inherited from [JMeterExtension.jmeterProperties].
+   */
+  @Input
+  @Optional
+  val jmeterProperties: MapProperty<String, String> = objectFactory.propertyMap()
+    .value(jmExt.jmeterProperties)
+
+  /**
+   * File where jmeter log will be written to.
+   *
+   * Inherited from [JMeterExtension.logOutputFile].
+   */
+  @OutputFile
+  @Optional
+  val logOutputFile: RegularFileProperty = objectFactory.fileProperty()
+    .value(jmExt.logOutputFile)
+
+  /**
+   * The jmx-file to use. Absolute or relative file.
+   * If relative it will be resolved against [JMeterExtension.jmxRootDir].
+   * Attention: Even if optional, [Run][JMeterRunTask] and [Report][JMeterReportTask] tasks
+   * require it!
    */
   @Input
   @Optional
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
   /**
-   * Dedicated properties send to local JMeter only.
-   * 
-   * Inherited from [JMeterExtension.jmeterProperties]
-   */
-  @Input
-  @Optional
-  val jmeterProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
-    .value(jmExt.jmeterProperties)
-
-  /**
-   * Path to a JMeter property file which will be sent to all remote server.
-   * 
-   * Inherited from [JMeterExtension.globalPropertiesFile]
-   */
-  @InputFile
-  @PathSensitive(PathSensitivity.ABSOLUTE)
-  @Optional
-  val globalPropertiesFile: RegularFileProperty = objectFactory.fileProperty()
-    .value(jmExt.globalPropertiesFile)
-
-  /**
-   * Dedicated user properties send to all remote server.
-   * 
-   * Inherited from [JMeterExtension.globalProperties]
-   */
-  @Input
-  val globalProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
-    .value(jmExt.globalProperties)
-
-  /**
    * The source-jmx-file to use for execution. Will be computed based on [JMeterExtension.jmxRootDir] and [jmxFile].
-   * 
+   *
    * Just for internal usage
    */
-  @InputFile
-  @PathSensitive(PathSensitivity.ABSOLUTE)
-  protected val sourceFile: RegularFileProperty = objectFactory.fileProperty()
+  @get:InputFile
+  @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  internal val sourceFile: RegularFileProperty = objectFactory.fileProperty().fileProvider(resolveJmxFile())
 
   /**
-   * Directory where to store the results.
-   * 
-   * Inherited from [JMeterExtension.resultDir]
-   */
-  @OutputDirectory
-  val resultDirectory: DirectoryProperty = objectFactory.directoryProperty()
-    .value(jmExt.resultDir)
-
-  /**
-   * Force jmeter to delete/override any existing output.
-   * If `false` but output exists, jmeter fails!
    *
-   * Defaults to `false`
-   */
-  @Input
-  var deleteResults: Boolean = false
-
-  /**
-   * Directory where to create the report.
-   *
-   * Inherited from [JMeterExtension.reportDir]
-   */
-  @OutputDirectory
-  val reportDir: DirectoryProperty = objectFactory.directoryProperty()
-    .value(jmExt.reportDir)
-
-  /**
-   * 
    * Inherited from [JMeterExtension.maxHeap]
    */
   @Input
@@ -123,72 +126,43 @@ abstract class JMeterBaseTask : JavaExec() {
 
   init {
     group = "jmeter"
-
-    sourceFile.convention {
-      if (jmxFile.isPresent) {
-        jmExt.jmxRootDir.file(jmxFile).get().asFile
-      } else {
-        log.lifecycle("No jmx file specified! Taking any from '${jmExt.jmxRootDir.get()}'.")
-        jmExt.jmxRootDir.asFileTree.matching {
-          it.include("*.jmx")
-        }.first()
-      }
-    }
-
     mainClass.value(jmExt.tool.mainClass)
   }
 
-  /**
-   * Copies default resources to jmeters bin dir.
-   * Can be overridden if a task needs to copy additional resources.
-   * Default resources are:
-   * - log4j.xml
-   * - jmeter.properties
-   * - upgrade.properties
-   * - saveservice.properties
-   *
-   * Function respects tool-configurations.
-   * Remarks: Don't forget to call super!
-   */
-  protected open fun processResources(jmBinDir: File) {
-    val tool = jmExt.tool
-    copyRespectProperty(tool.logConfig, "log4j2.xml", jmBinDir)
-    copyRespectProperty(tool.jmeterPropertyFile, "jmeter.properties", jmBinDir)
-    copyRespectProperty(tool.upgradePropertyFile, "upgrade.properties", jmBinDir)
-    copyRespectProperty(tool.saveServicePropertyFile, "saveservice.properties", jmBinDir)
-  }
-
-  protected fun copyRespectProperty(property: RegularFileProperty, resource: String, toDir: File) {
-    if (property.isPresent) {
-      property.asFile.get().copyToDir(toDir)
+  private fun resolveJmxFile() = jmxFile.map {
+    val file = File(it)
+    if (file.isAbsolute) {
+      file
     } else {
-      toDir.copyFromResourceFile(resource)
+      jmExt.jmxRootDir.file(it).get().asFile
     }
   }
 
   @TaskAction
   override fun exec() {
-    val tmpJmJar = getJMeterLib()
 
     // create the folder structure required by jmeter
     val jmDir = project.buildDir.resolve("jmeter")
     jmDir.mkdir()
-
     val jmBin = jmDir.resolve("bin")
-    val jmJar = tmpJmJar.copyToDir(jmBin)
-    processResources(jmBin)
 
+    val tmpJmJar = getJMeterLib()
+    val jmJar = tmpJmJar.copyToDir(jmBin)
     classpath(project.files(jmJar))
+
+    val resourceJar = getJMeterResourceLib()
+    CopyResource.extractJarToDir(JarFile(resourceJar), jmDir)
 
     val libDir = jmDir.resolve("lib")
     val extDir = libDir.resolve("ext")
-    val junitDir = libDir.resolve("junit")
-
-    extDir.mkdirs()
-    junitDir.mkdirs()
 
     resolveExtensionLibs(JMETER_PLUGIN_DEPENDENCY, extDir, libDir)
     resolveToolLibs(JMETER_LIB_DEPENDENCY, libDir)
+
+    // not quite sure if required, maybe remove
+    extDir.mkdirs()
+    val junitDir = libDir.resolve("junit")
+    junitDir.mkdirs()
 
     if (maxHeap.isPresent) {
       maxHeapSize = maxHeap.get()
@@ -240,6 +214,7 @@ abstract class JMeterBaseTask : JavaExec() {
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
+
     return artifacts.find {
       val id = it.moduleVersion.id
       id.group == jmTool.group &&
@@ -247,34 +222,63 @@ abstract class JMeterBaseTask : JavaExec() {
     }?.file!!
   }
 
+  private fun getJMeterResourceLib(): File {
+    val jmTool = jmExt.tool
+    val artifacts: Set<ResolvedArtifact> = project.configurations
+      .getByName(JMETER_RUNNER)
+      .resolvedConfiguration.resolvedArtifacts
+
+    val toolConfNot = jmTool.createToolConfigDependencyNotion()
+    val toolConfName = toolConfNot["name"]
+    return artifacts.find {
+      val id = it.moduleVersion.id
+      id.group == jmTool.group &&
+        id.name == toolConfName
+    }?.file!!
+  }
+
   internal open fun createRunArguments() = mutableListOf<String>().apply {
-    add("-t")
-    val src = sourceFile.get().asFile
-    add(src.absolutePath) // test file
+    // system prop file first
+    jmSystemPropertyFiles.forEach {
+      add("-S")
+      add(it.absolutePath)
+    }
 
-    // result file
-    add("-l")
-    add(resultDirectory.file("${src.nameWithoutExtension}.jtl").get().asFile.absolutePath)
+    // now normal sys-props
+    jmSystemProperties.get().forEach { (t, u) ->
+      add("-D$t=$u")
+    }
 
-    // log file
-    add("-j")
-    add(resultDirectory.file("${src.nameWithoutExtension}.log").get().asFile.absolutePath)
+    // main jmeter property file next
+    if (mainPropertyFile.isPresent) {
+      add("-p")
+      add(mainPropertyFile.get().asFile.absolutePath)
+    }
 
+    additionalPropertyFiles.forEach {
+      add("-q")
+      add(it.absolutePath)
+    }
+
+    // normal jmeter props
     jmeterProperties.get().forEach { (k, v) ->
       add("-J$k=$v")
     }
 
-    // global properties file goes first to allow override by dedicated global properties
-    if (globalPropertiesFile.isPresent) {
-      add("-G${globalPropertiesFile.get().asFile.absolutePath}")
+    // log config
+    if (jmExt.logConfig.isPresent) {
+      add("-i")
+      add(jmExt.logConfig.get().asFile.absolutePath)
     }
+    // log output file
+    if (logOutputFile.isPresent) {
+      add("-j")
+      add(logOutputFile.get().asFile.absolutePath)
+    }
+  }
 
-    globalProperties.get().forEach { (k, v) ->
-      add("-G$k=$v")
-    }
-
-    if (deleteResults) {
-      add("-f")
-    }
+  protected fun addJmxFile(args: MutableList<String>) = args.apply {
+    add("-t")
+    add(sourceFile.get().asFile.absolutePath) // test file
   }
 }

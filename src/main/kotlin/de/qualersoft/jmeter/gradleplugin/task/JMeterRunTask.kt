@@ -1,6 +1,13 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
+import de.qualersoft.jmeter.gradleplugin.JMeterExtension
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.work.DisableCachingByDefault
 
 /**
@@ -10,7 +17,27 @@ import org.gradle.work.DisableCachingByDefault
  */
 @Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Would love to execute jmeter tests more than once;)")
-open class JMeterRunTask : JMeterBaseTask() {
+open class JMeterRunTask : JMeterExecBaseTask() {
+
+  /**
+   * Path to a JMeter property file which will be sent to all remote server.
+   *
+   * Inherited from [JMeterExtension.globalPropertiesFile]
+   */
+  @InputFile
+  @Optional
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  val globalPropertiesFile: RegularFileProperty = objectFactory.fileProperty()
+    .value(jmExt.globalPropertiesFile)
+
+  /**
+   * Dedicated user properties send to all remote server.
+   *
+   * Inherited from [JMeterExtension.globalProperties]
+   */
+  @Input
+  val globalProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
+    .value(jmExt.globalProperties)
 
   /**
    * If `true` the report will automatically be generated after executions.
@@ -22,15 +49,28 @@ open class JMeterRunTask : JMeterBaseTask() {
   @Input
   var generateReport: Boolean = false
 
-  override fun createRunArguments() = mutableListOf<String>().also {
-    it.add("-n") // no gui
+  override fun createRunArguments() = mutableListOf<String>().apply {
+    add("-n") // no gui
 
-    it.addAll(super.createRunArguments())
+    addAll(super.createRunArguments())
+
+    // global properties file goes first to allow override by dedicated global properties
+    if (globalPropertiesFile.isPresent) {
+      add("-G${globalPropertiesFile.get().asFile.absolutePath}")
+    }
+    globalProperties.get().forEach { (k, v) ->
+      add("-G$k=$v")
+    }
+
+    addJmxFile(this)
+
+    addResultFile(this, false)
 
     if (generateReport) {
-      it.add("-e")
-      it.add("-o")
-      it.add(reportDir.get().asFile.absolutePath)
+      add("-e")
+      addReport(this)
     }
+
+    addDelete(this)
   }
 }

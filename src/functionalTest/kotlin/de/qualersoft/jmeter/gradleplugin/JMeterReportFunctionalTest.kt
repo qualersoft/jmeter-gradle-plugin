@@ -45,26 +45,6 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   @KotlinTag
-  fun `report always use fresh template dir`() {
-    rootFolder = { "reportTest" }
-    val runner = setupKotlinTest("freshReport_build").withArguments("runTest", "reportTest")
-    copyJmxToDefaultLocation()
-    runner.build()
-
-    val reportDir = runner.projectDir.resolve("custom-template")
-    copyZipResourceTo("report-template.zip", reportDir)
-    val result = runner.withArguments("customReport").build()
-
-    val expectedReportFile = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
-    assertAll(
-      { runShouldSucceed(result) },
-      { expectedReportFile should exist() },
-      { expectedReportFile.readText() should contain("<title>My own") }
-    )
-  }
-
-  @Test
-  @KotlinTag
   fun `report with custom template from extension`() {
     rootFolder = { "reportTest" }
     val runner = setupKotlinTest("ownReportFromExtension_build").withArguments("runTest", "reportTest")

@@ -14,6 +14,6 @@ tasks {
   }
   register<JMeterReportTask>("reportTest") {
     jmxFile.set("Test.jmx")
-    reportTemplate.set(file("custom-template/report-template"))
+    customReportTemplateDirectory.set(file("custom-template/report-template"))
   }
 }
