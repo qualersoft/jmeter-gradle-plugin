@@ -11,13 +11,8 @@ repositories {
 tasks {
   register<JMeterRunTask>("runTest") {
     jmxFile.set("Test.jmx")
-  }
-  register<JMeterReportTask>("reportTest") {
-    jmxFile.set("Test.jmx")
-  }
-  register<JMeterReportTask>("customReport") {
-    jmxFile.set("Test.jmx")
-    deleteResults = true
+    generateReport = true
     customReportTemplateDirectory.set(file("custom-template/report-template"))
+    deleteResults = true
   }
 }

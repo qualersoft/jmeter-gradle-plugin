@@ -68,4 +68,27 @@ class JMeterReportTaskTest : JMeterTaskTestBase() {
     val result = task.createRunArguments()
     result should contain("-JASD=roxx")
   }
+
+  @Test
+  fun respectCustomReportTemplate() {
+    val task = createTaskWithConfig<JMeterReportTask>({}, {
+      customReportTemplateDirectory.set(project.file("custom-report"))
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val result = task.createRunArguments()
+    result shouldHave matchingEntry("-J.*=.*custom-report".toRegex())
+  }
+
+  @Test
+  fun respectCustomReportTemplateFromExtension() {
+    val task = createTaskWithConfig<JMeterReportTask>({
+      customReportTemplateDirectory.set(project.file("custom-extension-report"))
+    }, {
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val result = task.createRunArguments()
+    result shouldHave matchingEntry("-J.*=.*custom-extension-report".toRegex())
+  }
 }

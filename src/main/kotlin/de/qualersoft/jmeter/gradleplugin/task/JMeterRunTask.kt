@@ -9,7 +9,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.work.DisableCachingByDefault
-import java.io.File
 
 /**
  * Task to execute jmeter through cli mode (no gui).
@@ -49,13 +48,6 @@ open class JMeterRunTask : JMeterExecBaseTask() {
    */
   @Input
   var generateReport: Boolean = false
-
-  override fun processResources(jmBinDir: File) {
-    super.processResources(jmBinDir)
-    if (generateReport) {
-      copyReportTemplate(reportTemplate, jmBinDir)
-    }
-  }
 
   override fun createRunArguments() = mutableListOf<String>().apply {
     add("-n") // no gui
