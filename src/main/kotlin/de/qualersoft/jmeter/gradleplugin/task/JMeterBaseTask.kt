@@ -1,6 +1,6 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
-import de.qualersoft.jmeter.gradleplugin.CopyResource.copyFromResourceFile
+import de.qualersoft.jmeter.gradleplugin.CopyResource
 import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
 import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
 import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
@@ -27,6 +27,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import java.util.jar.JarFile
 
 /**
  * Base task for all JMeter*Tasks.
@@ -44,8 +45,8 @@ abstract class JMeterBaseTask : JavaExec() {
   @InputFile
   @Optional
   @PathSensitive(PathSensitivity.ABSOLUTE)
-  val jmSystemPropertyFile: RegularFileProperty = objectFactory.fileProperty()
-    .value(jmExt.sysPropertyFile)
+  val jmSystemPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
+    .from(jmExt.systemPropertyFiles)
 
   @Input
   @Optional
@@ -54,7 +55,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   /**
    * Main jmeter property file.
-   * 
+   *
    * Inherited from [JMeterExtension.mainPropertyFile].
    */
   @InputFile
@@ -65,7 +66,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   /**
    * Additional property files.
-   * 
+   *
    * Inherited from [JMeterExtension.additionalPropertyFiles].
    * To override use `setFrom`, to extend use `from`.
    */
@@ -87,7 +88,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   /**
    * File where jmeter log will be written to.
-   * 
+   *
    * Inherited from [JMeterExtension.logOutputFile].
    */
   @OutputFile
@@ -129,40 +130,11 @@ abstract class JMeterBaseTask : JavaExec() {
   }
 
   private fun resolveJmxFile() = jmxFile.map {
-      val file = File(it)
-      if (file.isAbsolute) {
-        file
-      } else {
-        jmExt.jmxRootDir.file(it).get().asFile
-      }
-    }
-
-  /**
-   * Copies default resources to jmeters bin dir.
-   * Can be overridden if a task needs to copy additional resources.
-   * Default resources are:
-   * - log4j.xml
-   * - jmeter.properties
-   * - upgrade.properties
-   * - saveservice.properties
-   *
-   * Function respects tool-configurations.
-   * Remarks: Don't forget to call super!
-   */
-  protected open fun processResources(jmBinDir: File) {
-    val tool = jmExt.tool
-    // TASK: Will be removed with #14
-    copyRespectProperty(jmExt.logConfig, "log4j2.xml", jmBinDir)
-    copyRespectProperty(jmExt.mainPropertyFile, "jmeter.properties", jmBinDir)
-    copyRespectProperty(tool.upgradePropertyFile, "upgrade.properties", jmBinDir)
-    copyRespectProperty(tool.saveServicePropertyFile, "saveservice.properties", jmBinDir)
-  }
-
-  protected fun copyRespectProperty(property: RegularFileProperty, resource: String, toDir: File) {
-    if (property.isPresent) {
-      property.asFile.get().copyToDir(toDir)
+    val file = File(it)
+    if (file.isAbsolute) {
+      file
     } else {
-      toDir.copyFromResourceFile(resource)
+      jmExt.jmxRootDir.file(it).get().asFile
     }
   }
 
@@ -178,7 +150,8 @@ abstract class JMeterBaseTask : JavaExec() {
     val jmJar = tmpJmJar.copyToDir(jmBin)
     classpath(project.files(jmJar))
 
-    processResources(jmBin)
+    val resourceJar = getJMeterResourceLib()
+    CopyResource.extractJarToDir(JarFile(resourceJar), jmDir)
 
     val libDir = jmDir.resolve("lib")
     val extDir = libDir.resolve("ext")
@@ -241,6 +214,7 @@ abstract class JMeterBaseTask : JavaExec() {
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
+
     return artifacts.find {
       val id = it.moduleVersion.id
       id.group == jmTool.group &&
@@ -248,12 +222,28 @@ abstract class JMeterBaseTask : JavaExec() {
     }?.file!!
   }
 
+  private fun getJMeterResourceLib(): File {
+    val jmTool = jmExt.tool
+    val artifacts: Set<ResolvedArtifact> = project.configurations
+      .getByName(JMETER_RUNNER)
+      .resolvedConfiguration.resolvedArtifacts
+
+    val toolConfNot = jmTool.createToolConfigDependencyNotion()
+    val toolConfName = toolConfNot["name"]
+    return artifacts.find {
+      val id = it.moduleVersion.id
+      id.group == jmTool.group &&
+        id.name == toolConfName
+    }?.file!!
+  }
+
   internal open fun createRunArguments() = mutableListOf<String>().apply {
     // system prop file first
-    if (jmSystemPropertyFile.isPresent) {
+    jmSystemPropertyFiles.forEach {
       add("-S")
-      add(jmSystemPropertyFile.get().asFile.absolutePath)
+      add(it.absolutePath)
     }
+
     // now normal sys-props
     jmSystemProperties.get().forEach { (t, u) ->
       add("-D$t=$u")
@@ -266,7 +256,8 @@ abstract class JMeterBaseTask : JavaExec() {
     }
 
     additionalPropertyFiles.forEach {
-      add("-q${it.absolutePath}")
+      add("-q")
+      add(it.absolutePath)
     }
 
     // normal jmeter props

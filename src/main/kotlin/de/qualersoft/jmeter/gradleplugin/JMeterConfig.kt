@@ -5,8 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
@@ -15,11 +13,6 @@ import org.gradle.api.provider.Property
  * Class to configure the jMeter tool.
  * 
  * Provides settings for the used dependency of the main runner ([group], [name], [version], main class[mainClass]).
- * As well as configuration settings for:
- * - [report-template folder][reportTemplateDirectory],
- * - [reportgenerator.properties][reportGeneratorPropertyFile],
- * - [saveservice.properties][saveServicePropertyFile],
- * - [upgrade.properties][upgradePropertyFile]
  */
 class JMeterConfig(private val project: Project) {
 
@@ -69,64 +62,14 @@ class JMeterConfig(private val project: Project) {
     .convention("org.apache.jmeter.NewDriver")
   //</editor-fold>
 
-  //<editor-fold desc="Configuration files">
-
-  /**
-   * Path to the report-template folder required by the report generator.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the folder bundled with the plugin.
-   */
-  // TASK: Move to extension & task(s) -> in task has to be mapped as 
-  //  additional jmeterproperty (-J) 'jmeter.reportgenerator.exporter.html.property.template_dir'
-  val reportTemplateDirectory: DirectoryProperty = objects.directoryProperty()
-
-  /**
-   * Path to the reportgenerator.properties file required by the report generator.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the file bundled with the plugin.
-   */
-  val reportGeneratorPropertyFile: RegularFileProperty = objects.fileProperty()
-
-  /**
-   * Path to the saveservice.properties file required by jmeter.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the file bundled with the plugin.
-   */
-  val saveServicePropertyFile: RegularFileProperty = objects.fileProperty()
-
-  /**
-   * Path to the upgrade.properties file required by jmeter.
-   * Will be copied to jmeters bin directory.
-   *
-   * Remarks:
-   * - Probably needs be changed if [version] has been changed.
-   * - Will be copied as is!
-   *
-   * Defaults to the file bundled with the plugin.
-   */
-  val upgradePropertyFile: RegularFileProperty = objects.fileProperty()
-  //</editor-fold>
-
   /**
    * Convenience method to add the jmeter tool dependency with the current setting to the project.
    */
   fun applyTo(config: Configuration) {
     config.dependencies.add(createJMeterLibDependency())
+    val toolConfigDepNot = createToolConfigDependencyNotion()
+    val toolConfigDep = project.dependencies.create(toolConfigDepNot)
+    config.dependencies.add(applyBomWorkaround(toolConfigDep))
   }
 
   fun applyApacheComponents(config: Configuration) {
@@ -139,20 +82,8 @@ class JMeterConfig(private val project: Project) {
     }
   }
 
-  /**
-   * Creates a dependency notation for a jmeter core extension where group is [group].
-   * 
-   * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
-   * @param version The version to use, defaults to [version]
-   */
-  fun jmeterDependency(name: String, version: String? = null) = mutableMapOf<String, String>().also { 
-    it["group"] = group
-    it["name"] = "ApacheJMeter_$name"
-    it["version"] = version ?: this.version
-  }
-
   private fun createJMeterLibDependency(): Dependency {
-    val depNot = createDependencyNotation()
+    val depNot = createToolDependencyNotation()
     val cc = mainConfigureClosure
     val result = if (null != cc) {
       project.dependencies.create(depNot, cc)
@@ -174,9 +105,23 @@ class JMeterConfig(private val project: Project) {
     return dependency
   }
 
-  private fun createDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
+  fun createToolDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
     res["group"] = group
     res["name"] = name
     res["version"] = version
+  }
+  
+  fun createToolConfigDependencyNotion(): Map<String, String> = jmeterDependency("config")
+
+  /**
+   * Creates a dependency notation for a jmeter core extension where group is [group].
+   *
+   * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
+   * @param version The version to use, defaults to [version]
+   */
+  fun jmeterDependency(name: String, version: String? = null) = mutableMapOf<String, String>().also {
+    it["group"] = group
+    it["name"] = "ApacheJMeter_$name"
+    it["version"] = version ?: this.version
   }
 }

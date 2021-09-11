@@ -40,31 +40,50 @@ open class JMeterExtension(private val project: Project) {
   }
 
   //<editor-fold desc="JMeter-Property configurations">
-  val sysPropertyFile: RegularFileProperty = objects.fileProperty()
+  /**
+   * Additional system property file(s).
+   */
+  val systemPropertyFiles: ConfigurableFileCollection = objects.fileCollection()
+
+  /**
+   * Define additional system properties.
+   */
   val systemProperties: MapProperty<String, String> = objects.propertyMap()
-  
+
+  /**
+   * The jmeter property file to use.
+   */
   val mainPropertyFile: RegularFileProperty = objects.fileProperty()
+
+  /**
+   * Additional JMeter property file(s).
+   */
   val additionalPropertyFiles: ConfigurableFileCollection = objects.fileCollection()
 
   /**
-   * Dedicated properties send to local JMeter only.
+   * Define additional JMeter properties.
    */
-  val jmeterProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+  val jmeterProperties: MapProperty<String, String> = objects.propertyMap()
 
   /**
-   * Path to a JMeter property file which will be sent to all remote server.
+   * Path to a custom report-template folder used by report generator.
+   */
+  val customReportTemplateDirectory: DirectoryProperty = objects.directoryProperty()
+
+  /**
+   * Path to a JMeter property file which will be sent to all servers.
    */
   val globalPropertiesFile: RegularFileProperty = objects.fileProperty()
 
   /**
-   * Dedicated user properties send to all remote server.
+   * Properties which will be sent to remote servers.
    */
   val globalProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
   //</editor-fold>
 
   //<editor-fold desc="Logging configuration">
   /**
-   * Path to the logger-configuration file (attow `log4j.xml`) required by jmeter.
+   * Path to the logger-configuration file (attow `log4j2.xml`) required by jmeter.
    *
    * Defaults to the file bundled with the plugin.
    */

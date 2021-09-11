@@ -17,7 +17,6 @@ import io.kotest.matchers.shouldHave
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotHave
 import io.kotest.matchers.types.beInstanceOf
-import io.kotest.matchers.types.beOfType
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -88,6 +87,13 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
       { withClue("globalProperty") { args shouldNotHave entryStartsWith("-G") } },
       { withClue("delete flag") { args shouldNot contain("-f") } }
     )
+  }
+
+  @Test
+  fun canRunWithoutJmxFile() {
+    val task = createTask<JMeterGuiTask> { }.get()
+    val args = task.createRunArguments()
+    args shouldNot contain("-t")
   }
 
   @Test
