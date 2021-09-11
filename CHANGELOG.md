@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+
+## [2.0.0]
 ### Added
 - Support for more JMeter cli properties (#12)
 - mandatory JMeter configurations are now handled by dependency on respective config-jar (#15)
