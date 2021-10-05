@@ -170,7 +170,7 @@ jobs:
 
   publishSnapshot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.ref == 'develop'
+    if: github.ref == 'refs/heads/develop'
     needs:
       - report
       - licenceCheck
@@ -184,7 +184,7 @@ jobs:
           path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
-      - name: "Publish"
+      - name: "Publish snapshot"
         uses: burrunan/gradle-cache-action@v1
         env:
           USERNAME: ${{ github.actor }}

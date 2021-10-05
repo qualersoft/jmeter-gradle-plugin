@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.jar.JarFile
@@ -104,6 +105,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @Input
   @Optional
+  @Option(option = "t", description = "the jmeter test(.jmx) file to run")
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
   /**
@@ -113,6 +115,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @get:InputFile
   @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  @get:Optional
   internal val sourceFile: RegularFileProperty = objectFactory.fileProperty().fileProvider(resolveJmxFile())
 
   /**
