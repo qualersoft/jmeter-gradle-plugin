@@ -84,9 +84,7 @@ class JMeterPlugin : Plugin<Project> {
         it.group = LifecycleBasePlugin.BUILD_GROUP
         it.delete(buildDir)
       }
-      buildOutputCleanupRegistry.registerOutputs(clean.map {
-        it.targetFiles
-      })
+      buildOutputCleanupRegistry.registerOutputs(clean.map { it.targetFiles })
 
       // Register clean rule (Taken from LifecycleBasePlugin.addCleanRule)
       project.tasks.addRule(CleanRule(project.tasks))
