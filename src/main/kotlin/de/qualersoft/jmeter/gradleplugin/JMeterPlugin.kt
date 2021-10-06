@@ -1,10 +1,12 @@
 package de.qualersoft.jmeter.gradleplugin
 
-import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.language.base.internal.plugins.CleanRule
@@ -25,11 +27,6 @@ class JMeterPlugin : Plugin<Project> {
       project
     )
 
-    val javaPlg = JavaPlugin::class.java
-    if (!project.plugins.hasPlugin(javaPlg)) {
-      project.plugins.apply(javaPlg)
-    }
-
     registerConfiguration(project)
     project.afterEvaluate {
       registerTasks(it)
@@ -48,15 +45,27 @@ class JMeterPlugin : Plugin<Project> {
     val runnerConf = project.configurations.maybeCreate(JMETER_RUNNER)
     runnerConf.isVisible = false
     runnerConf.description = "The jmeter runner to use. Only for internal purposes!"
+    applyResolutionStrategyFor(runnerConf, project)
 
     val jmComp = project.configurations.maybeCreate(JMETER_PLUGIN_DEPENDENCY)
     jmComp.description = "JMeter extensions like 3rd party plugins. See `jmCoreExt` for easy adding jmeter extensions."
     jmComp.isVisible = true
     jmComp.isCanBeConsumed = false
     jmComp.isCanBeResolved = true
+    applyResolutionStrategyFor(jmComp, project)
 
     val tools = project.configurations.maybeCreate(JMETER_LIB_DEPENDENCY)
     tools.description = "Additional tool libraries that can be used within jmeter scripts. E.g. apache-commons"
+    applyResolutionStrategyFor(tools, project)
+  }
+
+  private fun applyResolutionStrategyFor(config: Configuration, project: Project) {
+    config.attributes {
+      val libCat = project.objects.named(Category::class.java, Category.LIBRARY)
+      it.attribute(Category.CATEGORY_ATTRIBUTE, libCat)
+      val libBundling = project.objects.named(Bundling::class.java, Bundling.EXTERNAL)
+      it.attribute(Bundling.BUNDLING_ATTRIBUTE, libBundling)
+    }
   }
 
   private fun registerTasks(project: Project) {
@@ -75,9 +84,7 @@ class JMeterPlugin : Plugin<Project> {
         it.group = LifecycleBasePlugin.BUILD_GROUP
         it.delete(buildDir)
       }
-      buildOutputCleanupRegistry.registerOutputs(clean.map {
-        it.targetFiles
-      })
+      buildOutputCleanupRegistry.registerOutputs(clean.map { it.targetFiles })
 
       // Register clean rule (Taken from LifecycleBasePlugin.addCleanRule)
       project.tasks.addRule(CleanRule(project.tasks))

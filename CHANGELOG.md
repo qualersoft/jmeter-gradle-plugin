@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+### Changed
+- Removed dependency on java-plugin (#19)
+
 ### Fixed
 - JMX-File now is really optional for gui tasks (#20)
 
