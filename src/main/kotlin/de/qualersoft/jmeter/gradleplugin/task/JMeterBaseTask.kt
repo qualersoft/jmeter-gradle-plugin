@@ -34,7 +34,7 @@ import java.util.jar.JarFile
  * Base task for all JMeter*Tasks.
  * Take care of proper preparation of jmeter runtime.
  */
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "TooManyFunctions")
 @DisableCachingByDefault(because = "Abstract base class")
 abstract class JMeterBaseTask : JavaExec() {
 
@@ -51,7 +51,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   @Option(option = "S", description = "Additional system property file(s).")
   fun setJmSystemPropertyFiles(files: List<String>) {
-    jmSystemPropertyFiles.from(*files.toTypedArray())
+    jmSystemPropertyFiles.setFrom(files)
   }
 
   @Input
@@ -100,7 +100,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   @Option(option = "q", description = "Additional JMeter property file(s).")
   fun setAdditionalPropertyFiles(files: List<String>) {
-    additionalPropertyFiles.from(*files.toTypedArray())
+    additionalPropertyFiles.setFrom(files)
   }
 
   /**
