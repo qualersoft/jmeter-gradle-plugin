@@ -8,11 +8,12 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
 
 /**
  * Task to execute jmeter through cli mode (no gui).
- * 
+ *
  * This is the preferred way to run performance tests.
  */
 @Suppress("UnstableApiUsage")
@@ -30,6 +31,11 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   val globalPropertiesFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.globalPropertiesFile)
 
+  @Option(option = "GF", description = "Define global properties file (sent to servers).")
+  fun setGlobalPropertyFile(file: String) {
+    globalPropertiesFile.set(project.file(file))
+  }
+
   /**
    * Dedicated user properties send to all remote server.
    *
@@ -38,6 +44,18 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   @Input
   val globalProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
     .value(jmExt.globalProperties)
+
+  @Option(
+    option = "G",
+    description = """Define global properties (sent to servers).
+        Attention to add a File use GF
+        Usage:
+        1) --G=Key1=Value1 --G=Key2=Value2
+        2) --G Key1=Value1 --G Key2=Value2"""
+  )
+  fun setGlobalProperties(keyValues: List<String>) {
+    globalProperties.putAll(parseCliListToMap(keyValues))
+  }
 
   /**
    * If `true` the report will automatically be generated after executions.
