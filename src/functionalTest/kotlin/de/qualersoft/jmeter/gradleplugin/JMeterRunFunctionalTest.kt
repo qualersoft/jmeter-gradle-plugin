@@ -47,9 +47,26 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val runner = setupKotlinTest("default_build").withArguments("runTest")
     copyJmxToDefaultLocation()
 
-    val result = runner.forwardOutput().build()
+    val result = runner.build()
 
     val resultFolder = runner.projectDir.resolve("build/test-results/jmeter")
+    assertAll(
+      { runShouldSucceed(result) },
+      { resultFolder should exist() },
+      { resultFolder.resolve("Test.jtl") should exist() }
+    )
+  }
+
+  @Test
+  @KotlinTag
+  fun `jmx-File from command line`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("noJmxFileGiven_build").withArguments("runTest", "--test=Test.jmx")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val resultFolder = runner.projectDir.resolve("jmeter-results")
     assertAll(
       { runShouldSucceed(result) },
       { resultFolder should exist() },
@@ -86,9 +103,126 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val result = runner.build()
 
     val out = result.output
+    out shouldContain "Using maximum heap size of 16m."
+  }
+
+  @Test
+  @KotlinTag
+  fun `set maxHeap by commandline`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build").withArguments("runTest", "--maxHeap=32m")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    out shouldContain "Using maximum heap size of 32m."
+  }
+
+  @Test
+  @KotlinTag
+  fun `set jmeter property by commandline`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--J=aKey01=aValue01", "--J=aKey02=aValue02")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    out shouldContain "-JaKey01=aValue01, -JaKey02=aValue02,"
+  }
+
+  @Test
+  @KotlinTag
+  fun `set non existing additional jmeter property file by commandline should fail`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--addprop=ImNotThere.properties")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    val expectedFile = runner.projectDir.resolve("ImNotThere.properties").normalize().absolutePath
+    out shouldContain "-q, $expectedFile,"
+  }
+
+  @Test
+  @KotlinTag
+  fun `set non existing jmeter property file by commandline should fail`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--propfile=ImNotThere.properties")
+    copyJmxToDefaultLocation()
+
+    val result = runner.buildAndFail()
+
+    val out = result.output
+    val expectedFile = runner.projectDir.resolve("ImNotThere.properties").normalize().absolutePath
+    out shouldContain "mainPropertyFile' specifies file '$expectedFile' which doesn't exist."
+  }
+
+  @Test
+  @KotlinTag
+  fun `set sys property by commandline`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--sysProp=aKey01=aValue01", "--sysProp=aKey02=aValue02")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    out shouldContain "-DaKey01=aValue01, -DaKey02=aValue02,"
+  }
+
+  @Test
+  @KotlinTag
+  fun `set non existing system property file by commandline should fail`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--sysPropFile=ImNotThere1.properties", "--sysPropFile=ImNotThere2.properties")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    val expectedFile1 = runner.projectDir.resolve("ImNotThere1.properties").normalize().absolutePath
+    val expectedFile2 = runner.projectDir.resolve("ImNotThere2.properties").normalize().absolutePath
     assertAll(
-      out shouldContain "Using maximum heap size of 16m."
+      { out shouldContain "-S, $expectedFile1," },
+      { out shouldContain "-S, $expectedFile2," }
     )
+  }
+
+  @Test
+  @KotlinTag
+  fun `set global properties by commandline should fail`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--G=aGlobalKey1=aGlobalValue1", "--G=aGlobalKey2=aGlobalValue2")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    val out = result.output
+    out shouldContain "-GaGlobalKey1=aGlobalValue1, -GaGlobalKey2=aGlobalValue2,"
+  }
+
+  @Test
+  @KotlinTag
+  fun `set non existing global property file by commandline should fail`() {
+    rootFolder = { "runTest" }
+    val runner = setupKotlinTest("default_build")
+      .withArguments("runTest", "--GF=ImNotThere.properties")
+    copyJmxToDefaultLocation()
+
+    val result = runner.buildAndFail()
+
+    val out = result.output
+    val expectedFile = runner.projectDir.resolve("ImNotThere.properties").normalize().absolutePath
+    out shouldContain "'globalPropertiesFile' specifies file '$expectedFile' which doesn't exist."
   }
 
   @Test

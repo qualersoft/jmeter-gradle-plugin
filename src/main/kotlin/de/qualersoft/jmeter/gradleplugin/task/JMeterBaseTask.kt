@@ -49,7 +49,7 @@ abstract class JMeterBaseTask : JavaExec() {
   val jmSystemPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
     .from(jmExt.systemPropertyFiles)
 
-  @Option(option = "S", description = "Additional system property file(s).")
+  @Option(option = "sysPropFile", description = "Additional system property file(s).")
   fun setJmSystemPropertyFiles(files: List<String>) {
     jmSystemPropertyFiles.setFrom(files)
   }
@@ -60,11 +60,11 @@ abstract class JMeterBaseTask : JavaExec() {
     .value(jmExt.systemProperties)
 
   @Option(
-    option = "D",
+    option = "sysProp",
     description = """Define additional system properties.
         Usage:
-        1) --D=key1=value1 --D=key2=value2
-        2) --D key1=value1 --D key2=value2"""
+        1) --sysProp=key1=value1 --sysProp=key2=value2
+        2) --sysProp key1=value1 --sysProp key2=value2"""
   )
   fun setJmSystemProperties(keyValues: List<String>) {
     jmSystemProperties.putAll(parseCliListToMap(keyValues))
@@ -81,7 +81,7 @@ abstract class JMeterBaseTask : JavaExec() {
   val mainPropertyFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.mainPropertyFile)
 
-  @Option(option = "p", description = "The jmeter property file to use.")
+  @Option(option = "propfile", description = "The jmeter property file to use.")
   fun setMainPropertyFile(path: String) {
     mainPropertyFile.set(project.file(path))
   }
@@ -98,7 +98,7 @@ abstract class JMeterBaseTask : JavaExec() {
   val additionalPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
     .from(jmExt.additionalPropertyFiles)
 
-  @Option(option = "q", description = "Additional JMeter property file(s).")
+  @Option(option = "addprop", description = "Additional JMeter property file(s).")
   fun setAdditionalPropertyFiles(files: List<String>) {
     additionalPropertyFiles.setFrom(files)
   }
@@ -143,7 +143,7 @@ abstract class JMeterBaseTask : JavaExec() {
   @Input
   @Optional
   @Option(
-    option = "t",
+    option = "test",
     description = "The jmeter test(.jmx) file to run. " +
       "If relative or just a file name, it will be resolved relative to the jmxRootDir."
   )
