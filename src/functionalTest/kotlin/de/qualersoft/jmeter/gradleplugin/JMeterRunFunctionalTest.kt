@@ -247,8 +247,10 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val report = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
     val out = result.output
+    val fileNotFoundMessage =
+      "java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()
     assertAll(
-      { out shouldNot contain("Problem loading properties\\. java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()) },
+      { out shouldNot contain(fileNotFoundMessage) },
       { report should exist() }
     )
   }
@@ -267,8 +269,10 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val report = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
     val out = result.output
+    val fileNotFoundMessage =
+      "java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()
     assertAll(
-      { out shouldNot contain("Problem loading properties\\. java\\.io\\.FileNotFoundException:.*\\\\build\\\\jmeter\\\\bin\\\\reportgenerator\\.properties".toRegex()) },
+      { out shouldNot contain(fileNotFoundMessage) },
       { report should exist() },
       { report.readText() should contain("<title>My own") }
     )
