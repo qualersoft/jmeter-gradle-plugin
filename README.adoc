@@ -209,7 +209,7 @@ tasks {
 +
 [source, shell script]
 ----
-root> gradlew jmeterReport
+root> ./gradlew jmeterReport
 ----
 This generates the report under `build/reports/jmeter/Test`
 [NOTE,title=Note]
@@ -254,7 +254,7 @@ tasks {
 And back to CLI
 [source,shell script]
 ----
-root> gradlew edit
+root> ./gradlew edit
 ----
 As an alternative, if you don't want to clutter your tasks-section, you can use the `jmeter`-extension
 [source,kotlin]
@@ -265,6 +265,15 @@ jmeter {
   }
 }
 ----
+
+== Cli arguments
+All tasks also provide some of their properties through cli-arguments. +
+To see what arguments are supported by a task simply run
+[source,shell script]
+----
+root> ./gradlew help --task <taskName> <.>
+----
+<1> with <taskName> being a JMeter*Task defined in your build script.
 
 == Configure jmeter
 As mentioned in the preamble, this plugin is designed to be as flexible as possible. +

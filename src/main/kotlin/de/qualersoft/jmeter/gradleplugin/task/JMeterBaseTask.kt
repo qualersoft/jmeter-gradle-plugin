@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.jar.JarFile
@@ -33,7 +34,7 @@ import java.util.jar.JarFile
  * Base task for all JMeter*Tasks.
  * Take care of proper preparation of jmeter runtime.
  */
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "TooManyFunctions")
 @DisableCachingByDefault(because = "Abstract base class")
 abstract class JMeterBaseTask : JavaExec() {
 
@@ -48,10 +49,26 @@ abstract class JMeterBaseTask : JavaExec() {
   val jmSystemPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
     .from(jmExt.systemPropertyFiles)
 
+  @Option(option = "sysPropFile", description = "Additional system property file(s).")
+  fun setJmSystemPropertyFiles(files: List<String>) {
+    jmSystemPropertyFiles.setFrom(files)
+  }
+
   @Input
   @Optional
   val jmSystemProperties: MapProperty<String, String> = objectFactory.propertyMap()
     .value(jmExt.systemProperties)
+
+  @Option(
+    option = "sysProp",
+    description = """Define additional system properties.
+        Usage:
+        1) --sysProp=key1=value1 --sysProp=key2=value2
+        2) --sysProp key1=value1 --sysProp key2=value2"""
+  )
+  fun setJmSystemProperties(keyValues: List<String>) {
+    jmSystemProperties.putAll(parseCliListToMap(keyValues))
+  }
 
   /**
    * Main jmeter property file.
@@ -63,6 +80,11 @@ abstract class JMeterBaseTask : JavaExec() {
   @PathSensitive(PathSensitivity.ABSOLUTE)
   val mainPropertyFile: RegularFileProperty = objectFactory.fileProperty()
     .value(jmExt.mainPropertyFile)
+
+  @Option(option = "propfile", description = "The jmeter property file to use.")
+  fun setMainPropertyFile(path: String) {
+    mainPropertyFile.set(project.file(path))
+  }
 
   /**
    * Additional property files.
@@ -76,6 +98,11 @@ abstract class JMeterBaseTask : JavaExec() {
   val additionalPropertyFiles: ConfigurableFileCollection = objectFactory.fileCollection()
     .from(jmExt.additionalPropertyFiles)
 
+  @Option(option = "addprop", description = "Additional JMeter property file(s).")
+  fun setAdditionalPropertyFiles(files: List<String>) {
+    additionalPropertyFiles.setFrom(files)
+  }
+
   /**
    * Dedicated properties send to local JMeter only.
    *
@@ -85,6 +112,17 @@ abstract class JMeterBaseTask : JavaExec() {
   @Optional
   val jmeterProperties: MapProperty<String, String> = objectFactory.propertyMap()
     .value(jmExt.jmeterProperties)
+
+  @Option(
+    option = "J",
+    description = """Define additional JMeter properties.
+        Usage:
+        1) --J=Key1=Value1 --J=Key2=Value2
+        2) --J Key1=Value1 --J Key2=Value2"""
+  )
+  fun setJmeterProperties(keyValues: List<String>) {
+    jmeterProperties.putAll(parseCliListToMap(keyValues))
+  }
 
   /**
    * File where jmeter log will be written to.
@@ -104,6 +142,11 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @Input
   @Optional
+  @Option(
+    option = "test",
+    description = "The jmeter test(.jmx) file to run. " +
+      "If relative or just a file name, it will be resolved relative to the jmxRootDir."
+  )
   val jmxFile: Property<String> = objectFactory.property(String::class.java)
 
   /**
@@ -113,6 +156,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @get:InputFile
   @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  @get:Optional
   internal val sourceFile: RegularFileProperty = objectFactory.fileProperty().fileProvider(resolveJmxFile())
 
   /**
@@ -121,6 +165,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @Input
   @Optional
+  @Option(option = "maxHeap", description = "The maximum heap size of the JVM process.")
   val maxHeap: Property<String> = objectFactory.property(String::class.java)
     .value(jmExt.maxHeap)
 
@@ -159,7 +204,7 @@ abstract class JMeterBaseTask : JavaExec() {
     resolveExtensionLibs(JMETER_PLUGIN_DEPENDENCY, extDir, libDir)
     resolveToolLibs(JMETER_LIB_DEPENDENCY, libDir)
 
-    // not quite sure if required, maybe remove
+    // not quite sure if `junit` is required, maybe remove
     extDir.mkdirs()
     val junitDir = libDir.resolve("junit")
     junitDir.mkdirs()
@@ -280,5 +325,10 @@ abstract class JMeterBaseTask : JavaExec() {
   protected fun addJmxFile(args: MutableList<String>) = args.apply {
     add("-t")
     add(sourceFile.get().asFile.absolutePath) // test file
+  }
+
+  protected fun parseCliListToMap(keyValues: List<String>) = keyValues.associate {
+    val (key, value) = it.split("=".toRegex(), 2)
+    key to value
   }
 }
