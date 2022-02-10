@@ -328,7 +328,7 @@ At the current time, these plugins are hardwired and cannot be modified. +
 ====
 
 === Adding support libraries
-Sometime you have quite special and reusable code that you wouldn't maintain within JMeter. Or you just want to use an existing libraries functions within JMeter. +
+Sometimes you have quite special and reusable code that you wouldn't maintain within JMeter. Or you just want to use an existing libraries functions within JMeter. +
 To make them available to JMeter you can use the `jmeterLibrary` dependency handler
 [source,kotlin]
 ----
