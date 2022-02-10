@@ -1,14 +1,8 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
-import de.qualersoft.jmeter.gradleplugin.CopyResource
-import de.qualersoft.jmeter.gradleplugin.JMETER_LIB_DEPENDENCY
-import de.qualersoft.jmeter.gradleplugin.JMETER_PLUGIN_DEPENDENCY
-import de.qualersoft.jmeter.gradleplugin.JMETER_RUNNER
+import de.qualersoft.jmeter.gradleplugin.JMETER_SETUP_TASK_NAME
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
-import de.qualersoft.jmeter.gradleplugin.copyToDir
 import de.qualersoft.jmeter.gradleplugin.propertyMap
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
@@ -25,10 +19,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
-import java.util.jar.JarFile
 
 /**
  * Base task for all JMeter*Tasks.
@@ -169,9 +163,17 @@ abstract class JMeterBaseTask : JavaExec() {
   val maxHeap: Property<String> = objectFactory.property(String::class.java)
     .value(jmExt.maxHeap)
 
+  private val setupTask: TaskProvider<JMeterSetupTask> =
+    project.tasks.named(JMETER_SETUP_TASK_NAME, JMeterSetupTask::class.java)
+
+  @InputFile
+  private val jmToolJar: RegularFileProperty = objectFactory.fileProperty()
+    .value(setupTask.map { it.jmJar.get() })
+
   init {
     group = "jmeter"
     mainClass.value(jmExt.tool.mainClass)
+    super.dependsOn(setupTask)
   }
 
   private fun resolveJmxFile() = jmxFile.map {
@@ -186,28 +188,7 @@ abstract class JMeterBaseTask : JavaExec() {
   @TaskAction
   override fun exec() {
 
-    // create the folder structure required by jmeter
-    val jmDir = project.buildDir.resolve("jmeter")
-    jmDir.mkdir()
-    val jmBin = jmDir.resolve("bin")
-
-    val tmpJmJar = getJMeterLib()
-    val jmJar = tmpJmJar.copyToDir(jmBin)
-    classpath(project.files(jmJar))
-
-    val resourceJar = getJMeterResourceLib()
-    CopyResource.extractJarToDir(JarFile(resourceJar), jmDir)
-
-    val libDir = jmDir.resolve("lib")
-    val extDir = libDir.resolve("ext")
-
-    resolveExtensionLibs(JMETER_PLUGIN_DEPENDENCY, extDir, libDir)
-    resolveToolLibs(JMETER_LIB_DEPENDENCY, libDir)
-
-    // not quite sure if `junit` is required, maybe remove
-    extDir.mkdirs()
-    val junitDir = libDir.resolve("junit")
-    junitDir.mkdirs()
+    classpath(jmToolJar.get())
 
     if (maxHeap.isPresent) {
       maxHeapSize = maxHeap.get()
@@ -218,68 +199,6 @@ abstract class JMeterBaseTask : JavaExec() {
     args(createRunArguments())
     log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
     super.exec()
-  }
-
-  private fun resolveExtensionLibs(confName: String, extDir: File, toolDir: File) {
-    val resolvedExtenstions = mutableListOf<ResolvedDependency>()
-    project.configurations.getByName(confName)
-      .resolvedConfiguration.firstLevelModuleDependencies.flatMap {
-        resolvedExtenstions.add(it)
-        it.moduleArtifacts
-      }.map {
-        it.file
-      }.forEach {
-        it.copyToDir(extDir)
-      }
-    resolvedExtenstions.flatMap {
-      it.children
-    }.filterNot {
-      // only take dependencies that were not already copied earlier
-      resolvedExtenstions.contains(it)
-    }.flatMap {
-      it.allModuleArtifacts
-    }.map {
-      it.file
-    }.forEach {
-      it.copyToDir(toolDir)
-    }
-  }
-
-  private fun resolveToolLibs(confName: String, toolDir: File) {
-    project.configurations.getByName(confName)
-      .resolvedConfiguration.resolvedArtifacts.map {
-        it.file
-      }.forEach {
-        it.copyToDir(toolDir)
-      }
-  }
-
-  private fun getJMeterLib(): File {
-    val jmTool = jmExt.tool
-    val artifacts: Set<ResolvedArtifact> = project.configurations
-      .getByName(JMETER_RUNNER)
-      .resolvedConfiguration.resolvedArtifacts
-
-    return artifacts.find {
-      val id = it.moduleVersion.id
-      id.group == jmTool.group &&
-        id.name == jmTool.name
-    }?.file!!
-  }
-
-  private fun getJMeterResourceLib(): File {
-    val jmTool = jmExt.tool
-    val artifacts: Set<ResolvedArtifact> = project.configurations
-      .getByName(JMETER_RUNNER)
-      .resolvedConfiguration.resolvedArtifacts
-
-    val toolConfNot = jmTool.createToolConfigDependencyNotion()
-    val toolConfName = toolConfNot["name"]
-    return artifacts.find {
-      val id = it.moduleVersion.id
-      id.group == jmTool.group &&
-        id.name == toolConfName
-    }?.file!!
   }
 
   internal open fun createRunArguments() = mutableListOf<String>().apply {
