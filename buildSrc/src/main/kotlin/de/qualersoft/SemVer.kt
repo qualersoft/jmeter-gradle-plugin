@@ -77,7 +77,7 @@ fun parseSemVer(version: String?): SemVer {
 
   // fill up missing parts with 0
   if (3 > versionParts.size) {
-    for (i in 0..(versionParts.size - 3)) {
+    for (i in 0..(3 - versionParts.size)) {
       versionParts.add("0")
     }
   }
