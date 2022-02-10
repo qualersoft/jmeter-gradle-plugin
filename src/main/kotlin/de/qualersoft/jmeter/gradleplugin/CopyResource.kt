@@ -1,5 +1,6 @@
 package de.qualersoft.jmeter.gradleplugin
 
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import java.io.File
 import java.io.InputStream
@@ -8,15 +9,15 @@ import java.util.jar.JarFile
 
 object CopyResource {
 
-  val logger = Logging.getLogger(CopyResource::class.java)
+  private val log: Logger = Logging.getLogger(CopyResource::class.java)
 
   fun extractJarToDir(jarFile: JarFile, targetDir: File) {
     jarFile.entries().toList().forEach {
       val filename = it.name
-      logger.info("Going to copy: {}", filename)
+      log.info("Going to copy: {}", filename)
       val destFile = File(targetDir, filename)
       if (it.isDirectory) {
-        logger.info("{} is directory -> creating it", filename)
+        log.info("{} is directory -> creating it", filename)
         destFile.mkdirs()
       } else {
         copyStream(jarFile.getInputStream(it), destFile.outputStream())
@@ -33,6 +34,8 @@ object CopyResource {
 
 /**
  * Copies this file to a target directory
+ * 
+ * @return The target file
  */
 fun File.copyToDir(destDir: File): File {
   val destFile = destDir.resolve(this.name)

@@ -166,7 +166,6 @@ abstract class JMeterBaseTask : JavaExec() {
   private val setupTask: TaskProvider<JMeterSetupTask> =
     project.tasks.named(JMETER_SETUP_TASK_NAME, JMeterSetupTask::class.java)
 
-  @InputFile
   private val jmToolJar: RegularFileProperty = objectFactory.fileProperty()
     .value(setupTask.map { it.jmJar.get() })
 
