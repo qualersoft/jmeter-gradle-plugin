@@ -293,7 +293,7 @@ jmeter {
   }
 }
 ----
-[%collapsible%]
+[%collapsible]
 ====
 <1> The group-id of the jmeter-runner. +
 Defaults to 'org.apache.jmeter'.
@@ -321,8 +321,7 @@ By default, this plugin includes the following plugins (as they are also default
 ====
 "bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap", "mail", "mongodb", "native", "tcp"
 ====
-
-[%collapsible%, title=Info]
+[%collapsible, title=Info]
 ====
 At the current time, these plugins are hardwired and cannot be modified. +
 (Yeah, I know so much about flexibility... Mea culpa! 😉)
@@ -343,4 +342,3 @@ dependencies {
 ====
 Within an IDE with autocomplete, you may also notice the `jmeterRunner` dependency handler. This is for internal use only! Please use the respective `jmeter.tool` properties to configure the runner.
 ====
-
