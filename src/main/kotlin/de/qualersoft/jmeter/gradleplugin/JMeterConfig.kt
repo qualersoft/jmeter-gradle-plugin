@@ -11,7 +11,7 @@ import org.gradle.api.provider.Property
 
 /**
  * Class to configure the jMeter tool.
- * 
+ *
  * Provides settings for the used dependency of the main runner ([group], [name], [version], main class[mainClass]).
  */
 class JMeterConfig(private val project: Project) {
@@ -20,11 +20,11 @@ class JMeterConfig(private val project: Project) {
 
   private val objects = project.objects
 
-  //<editor-fold desc="dependency settings">
+  // <editor-fold desc="dependency settings">
   /**
    * The group id of the main library.
    * Used to resolve the library within a repository.
-   * 
+   *
    * Default: `org.apache.jmeter`
    */
   val group: String = "org.apache.jmeter"
@@ -32,16 +32,16 @@ class JMeterConfig(private val project: Project) {
   /**
    * The module name (artifact-id) of the main library.
    * Used to resolve the library within a repository.
-   * 
+   *
    * Default: `ApacheJMeter`
    */
   val name: String = "ApacheJMeter"
 
   /**
    * Overall version of jmeter.
-   * 
+   *
    * Remark: If change make sure that the additional resources like *.properties match!
-   * 
+   *
    * Defaults to '5.4.1'
    */
   val version: String = "5.4.1"
@@ -60,7 +60,7 @@ class JMeterConfig(private val project: Project) {
    */
   val mainClass: Property<String> = objects.property(String::class.java)
     .convention("org.apache.jmeter.NewDriver")
-  //</editor-fold>
+  // </editor-fold>
 
   /**
    * Convenience method to add the jmeter tool dependency with the current setting to the project.
@@ -73,8 +73,10 @@ class JMeterConfig(private val project: Project) {
   }
 
   fun applyApacheComponents(config: Configuration) {
-    listOf("bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap",
-      "mail", "mongodb", "native", "tcp").forEach { 
+    listOf(
+      "bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap",
+      "mail", "mongodb", "native", "tcp"
+    ).forEach {
       val depNot = jmeterDependency(it)
       val dep = project.dependencies.create(depNot)
       logger.debug("Adding dependency for {}", dep)
@@ -95,7 +97,7 @@ class JMeterConfig(private val project: Project) {
 
   /**
    * Workaround for invalid bom reference in jmeter-module-descriptor.
-   * 
+   *
    * Details see [https://bz.apache.org/bugzilla/show_bug.cgi?id=64465]
    */
   fun applyBomWorkaround(dependency: Dependency): Dependency {
@@ -105,12 +107,12 @@ class JMeterConfig(private val project: Project) {
     return dependency
   }
 
-  fun createToolDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
+  private fun createToolDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
     res["group"] = group
     res["name"] = name
     res["version"] = version
   }
-  
+
   fun createToolConfigDependencyNotion(): Map<String, String> = jmeterDependency("config")
 
   /**

@@ -1,5 +1,6 @@
 package de.qualersoft.jmeter.gradleplugin
 
+import de.qualersoft.jmeter.gradleplugin.task.JMeterSetupTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -18,6 +19,9 @@ const val JMETER_RUNNER = "jmeterRunner"
 const val JMETER_PLUGIN_DEPENDENCY = "jmeterPlugin"
 const val JMETER_LIB_DEPENDENCY = "jmeterLibrary"
 
+const val JMETER_SETUP_TASK_NAME = "setupJMeter"
+
+@Suppress("unused")
 class JMeterPlugin : Plugin<Project> {
 
   override fun apply(project: Project) {
@@ -28,8 +32,11 @@ class JMeterPlugin : Plugin<Project> {
     )
 
     registerConfiguration(project)
+    registerToolSetup(project)
+
     project.afterEvaluate {
-      registerTasks(it)
+      // we register clean task in afterEvaluate to do not depend on plugin registration order
+      registerClean(it as ProjectInternal)
 
       // register the jmeter tool with it's desired version
       val jmRunner = project.configurations.named(JMETER_RUNNER).get()
@@ -68,10 +75,6 @@ class JMeterPlugin : Plugin<Project> {
     }
   }
 
-  private fun registerTasks(project: Project) {
-    registerClean(project as ProjectInternal)
-  }
-
   private fun registerClean(project: ProjectInternal) {
     if (null == project.tasks.findByName(LifecycleBasePlugin.CLEAN_TASK_NAME)) {
       // Register clean task (Taken from LifecycleBasePlugin.addClean)
@@ -80,7 +83,7 @@ class JMeterPlugin : Plugin<Project> {
       buildOutputCleanupRegistry.registerOutputs(buildDir)
 
       val clean = project.tasks.register(LifecycleBasePlugin.CLEAN_TASK_NAME, Delete::class.java) {
-        it.description = "Deletes the build directory"
+        it.description = "Deletes the build directory (added by jmeter-task)"
         it.group = LifecycleBasePlugin.BUILD_GROUP
         it.delete(buildDir)
       }
@@ -89,6 +92,10 @@ class JMeterPlugin : Plugin<Project> {
       // Register clean rule (Taken from LifecycleBasePlugin.addCleanRule)
       project.tasks.addRule(CleanRule(project.tasks))
     }
+  }
+
+  private fun registerToolSetup(project: Project) {
+    project.tasks.register(JMETER_SETUP_TASK_NAME, JMeterSetupTask::class.java)
   }
 }
 
