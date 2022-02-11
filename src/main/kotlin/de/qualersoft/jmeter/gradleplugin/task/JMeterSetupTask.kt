@@ -53,11 +53,7 @@ open class JMeterSetupTask : DefaultTask() {
       .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
 
-    return artifacts.find {
-      val id = it.moduleVersion.id
-      id.group == jmTool.group &&
-        id.name == jmTool.name
-    }?.file!!
+    return findArtifactMatch(artifacts, jmTool.group, jmTool.name)
   }
 
   /**
@@ -70,13 +66,16 @@ open class JMeterSetupTask : DefaultTask() {
       .resolvedConfiguration.resolvedArtifacts
 
     val toolConfNot = jmTool.createToolConfigDependencyNotion()
-    val toolConfName = toolConfNot["name"]
-    return artifacts.find {
-      val id = it.moduleVersion.id
-      id.group == jmTool.group &&
-        id.name == toolConfName
-    }?.file!!
+    val toolConfName = toolConfNot["name"]!!
+    return findArtifactMatch(artifacts, jmTool.group, toolConfName)
   }
+
+  private fun findArtifactMatch(artifacts: Set<ResolvedArtifact>, group: String, name: String): File = checkNotNull(
+    artifacts.find {
+      val id = it.moduleVersion.id
+      id.group == group && id.name == name
+    }
+  ).file
 
   /**
    * Resolve the extension libraries (aka. plugins) and copy them to the [jmExtDir].

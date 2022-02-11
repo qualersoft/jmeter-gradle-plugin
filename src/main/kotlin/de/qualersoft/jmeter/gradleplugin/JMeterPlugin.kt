@@ -83,7 +83,7 @@ class JMeterPlugin : Plugin<Project> {
       buildOutputCleanupRegistry.registerOutputs(buildDir)
 
       val clean = project.tasks.register(LifecycleBasePlugin.CLEAN_TASK_NAME, Delete::class.java) {
-        it.description = "Deletes the build directory"
+        it.description = "Deletes the build directory (added by jmeter-task)"
         it.group = LifecycleBasePlugin.BUILD_GROUP
         it.delete(buildDir)
       }
