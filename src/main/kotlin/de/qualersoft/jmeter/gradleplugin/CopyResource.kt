@@ -34,7 +34,7 @@ object CopyResource {
 
 /**
  * Copies this file to a target directory
- * 
+ *
  * @return The target file
  */
 fun File.copyToDir(destDir: File): File {

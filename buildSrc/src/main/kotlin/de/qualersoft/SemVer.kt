@@ -68,6 +68,11 @@ data class SemVer(
   }
 }
 
+/**
+ * Semantic versions consists of a minimum of three parts Major, Minor and Patch
+ */
+private const val MIN_SEMVER_PARTS = 3
+
 fun parseSemVer(version: String?): SemVer {
   if (null == version) {
     return SemVer()
@@ -76,8 +81,8 @@ fun parseSemVer(version: String?): SemVer {
   val versionParts = version.split(".").toMutableList()
 
   // fill up missing parts with 0
-  if (3 > versionParts.size) {
-    for (i in 0..(3 - versionParts.size)) {
+  if (MIN_SEMVER_PARTS > versionParts.size) {
+    repeat(MIN_SEMVER_PARTS - versionParts.size) {
       versionParts.add("0")
     }
   }

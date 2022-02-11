@@ -49,7 +49,7 @@ class JMeterPluginTest {
 
   @Test
   fun `clean task will not be applied if already present`() {
-    val prj = ProjectBuilder.builder().build().also { 
+    val prj = ProjectBuilder.builder().build().also {
       it.plugins.apply("java")
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
     }

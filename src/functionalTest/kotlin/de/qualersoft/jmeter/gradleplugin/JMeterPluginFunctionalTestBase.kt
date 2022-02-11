@@ -113,7 +113,6 @@ open class JMeterPluginFunctionalTestBase {
     return result
   }
 
-
   protected fun File.copyTo(file: File) {
     this.inputStream().toFile(file)
   }

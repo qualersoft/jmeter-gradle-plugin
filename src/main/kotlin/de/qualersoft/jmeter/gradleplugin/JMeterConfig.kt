@@ -20,7 +20,7 @@ class JMeterConfig(private val project: Project) {
 
   private val objects = project.objects
 
-  //<editor-fold desc="dependency settings">
+  // <editor-fold desc="dependency settings">
   /**
    * The group id of the main library.
    * Used to resolve the library within a repository.
@@ -60,7 +60,7 @@ class JMeterConfig(private val project: Project) {
    */
   val mainClass: Property<String> = objects.property(String::class.java)
     .convention("org.apache.jmeter.NewDriver")
-  //</editor-fold>
+  // </editor-fold>
 
   /**
    * Convenience method to add the jmeter tool dependency with the current setting to the project.
