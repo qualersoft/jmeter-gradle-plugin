@@ -17,7 +17,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   init {
     rootFolder = { "runTest" }
   }
-  
+
   @Test
   fun `register a run task in kotlin dsl`() {
     val runner = setupTest("default_build")

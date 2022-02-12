@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
 class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
-  
+
   init {
     rootFolder = { "reportTest" }
   }
