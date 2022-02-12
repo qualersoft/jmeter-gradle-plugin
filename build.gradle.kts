@@ -244,8 +244,8 @@ fun getGradlePropsFile(): File {
 fun Test.applyJacocoWorkaround() {
   // Workaround on gradle/jacoco keeping *.exec file locked
   if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
-    logger.lifecycle("Running on Windows -> applying jacoco-lock workaround")
     this.doLast("JacocoLockWorkaround") {
+      logger.lifecycle("Running on Windows -> using jacoco-lock workaround")
       fun File.isLocked() = !renameTo(this)
       logger.lifecycle("Execute workaround")
       val jacocoTestExec = checkNotNull(extensions.getByType(JacocoTaskExtension::class)).destinationFile
@@ -254,10 +254,10 @@ fun Test.applyJacocoWorkaround() {
         return@doLast
       }
       logger.lifecycle("Waiting for $jacocoTestExec to become unlocked")
-      val waitMillis = 100L
+      val waitMillis = 200L
       var tries = 0
       while ((!jacocoTestExec.exists() || jacocoTestExec.isLocked()) && (tries++ < 100)) {
-        logger.lifecycle("Waiting $waitMillis ms (${jacocoTestExec.name} is locked)...")
+        logger.lifecycle("Waiting $waitMillis ms (${jacocoTestExec.name} is locked) the ${tries}th time...")
         Thread.sleep(waitMillis)
       }
       logger.lifecycle("Done waiting (${jacocoTestExec.name} is unlocked).")

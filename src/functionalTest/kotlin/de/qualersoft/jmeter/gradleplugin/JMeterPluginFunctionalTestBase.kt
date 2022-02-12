@@ -29,8 +29,8 @@ open class JMeterPluginFunctionalTestBase {
    */
   protected var rootFolder: () -> String? = { null }
 
-  protected fun setupTest(baseFileName: String, debug: Boolean = false): GradleRunner {
-    copyTestFileToTemp(baseFileName)
+  protected fun setupTest(baseFileName: String, ext: String = "gradle.kts", debug: Boolean = false): GradleRunner {
+    copyTestFileToTemp(baseFileName, ext)
     return createRunner(debug)
   }
 
@@ -93,8 +93,8 @@ open class JMeterPluginFunctionalTestBase {
     }
   }
 
-  private fun copyTestFileToTemp(resource: String): File {
-    var res = "$resource.gradle.kts"
+  private fun copyTestFileToTemp(resource: String, ext: String): File {
+    var res = "$resource.$ext"
     // if we have a root folder
     rootFolder()?.also {
       res = "$it/$res"
@@ -102,12 +102,12 @@ open class JMeterPluginFunctionalTestBase {
 
     val file = File(JMeterPluginFunctionalTestBase::class.java.classLoader.getResource(res)!!.file)
     testProjectDir.create()
-    val result = testProjectDir.newFile("build.gradle.kts")
+    val result = testProjectDir.newFile("build.$ext")
     file.inputStream().use { input ->
       result.outputStream().use { output -> input.copyTo(output) }
     }
 
-    val settings = testProjectDir.newFile("settings.gradle.kts")
+    val settings = testProjectDir.newFile("settings.$ext")
     settings.writeText("")
 
     return result

@@ -1,0 +1,15 @@
+plugins {
+  id "de.qualersoft.jmeter"
+}
+
+jmeter {
+  tool {
+    mainConfigureClosure = {
+      logger.lifecycle("Reconfiguring tools dependencies in groovy")
+    }
+  }
+}
+
+repositories {
+  mavenCentral()
+}
