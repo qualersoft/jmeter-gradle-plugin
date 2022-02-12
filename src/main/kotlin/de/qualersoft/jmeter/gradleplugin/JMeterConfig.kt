@@ -1,6 +1,5 @@
 package de.qualersoft.jmeter.gradleplugin
 
-import groovy.lang.Closure
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -12,7 +11,10 @@ import org.gradle.api.provider.Property
 /**
  * Class to configure the jMeter tool.
  *
- * Provides settings for the used dependency of the main runner ([group], [name], [version], main class[mainClass]).
+ * Provides settings for the used dependency of the main runner ([group], [name], [version], [main class][mainClass]).
+ *
+ * *Remark:*
+ * Be careful when changing this properties.
  */
 class JMeterConfig(private val project: Project) {
 
@@ -23,35 +25,38 @@ class JMeterConfig(private val project: Project) {
   // <editor-fold desc="dependency settings">
   /**
    * The group id of the main library.
-   * Used to resolve the library within a repository.
+   * Used to resolve the `jmeter library` and `configuration library` within a repository.
    *
    * Default: `org.apache.jmeter`
    */
-  val group: String = "org.apache.jmeter"
+  var group: String = "org.apache.jmeter"
 
   /**
    * The module name (artifact-id) of the main library.
-   * Used to resolve the library within a repository.
+   * Used to resolve the `jmeter library` and `configuration library` within a repository.
    *
    * Default: `ApacheJMeter`
    */
-  val name: String = "ApacheJMeter"
+  var name: String = "ApacheJMeter"
 
   /**
    * Overall version of jmeter.
+   * Used to resolve the `jmeter library` and `configuration library` within a repository.
    *
-   * Remark: If change make sure that the additional resources like *.properties match!
+   * Remark: If change make sure that additional provided resources like *.properties match!
+   * To compare against the default properties, execute the `setupJMeter`-task and use the files in
+   * the build/jmeter folder.
    *
    * Defaults to '5.4.1'
    */
-  val version: String = "5.4.1"
+  var version: String = "5.4.1"
 
   /**
    * Closure that will be applied to the `dependency` declaration
    * for the main library.
    * Default: `null`
    */
-  val mainConfigureClosure: Closure<ExternalModuleDependency>? = null
+  var mainConfigureClosure: (ExternalModuleDependency.() -> Unit)? = null
 
   /**
    * The fully qualified name of the Main class to be executed.
@@ -86,11 +91,9 @@ class JMeterConfig(private val project: Project) {
 
   private fun createJMeterLibDependency(): Dependency {
     val depNot = createToolDependencyNotation()
-    val cc = mainConfigureClosure
-    val result = if (null != cc) {
-      project.dependencies.create(depNot, cc)
-    } else {
-      project.dependencies.create(depNot)
+    val result = project.dependencies.create(depNot)
+    mainConfigureClosure?.let {
+      it(result as ExternalModuleDependency)
     }
     return applyBomWorkaround(result)
   }

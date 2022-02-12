@@ -30,6 +30,10 @@ open class JMeterSetupTask : DefaultTask() {
   @get:Internal
   internal val jmJar: RegularFileProperty = project.objects.fileProperty()
 
+  init {
+    group = "jmeter"
+  }
+
   @TaskAction
   fun run() {
     prepareDirectories()
