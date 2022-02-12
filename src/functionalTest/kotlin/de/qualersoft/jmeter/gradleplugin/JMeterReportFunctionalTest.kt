@@ -7,10 +7,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
 class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
+  
+  init {
+    rootFolder = { "reportTest" }
+  }
 
   @Test
   fun `report with default template`() {
-    rootFolder = { "reportTest" }
     val runner = setupTest("default_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
 
@@ -25,7 +28,6 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   fun `report with custom template`() {
-    rootFolder = { "reportTest" }
     val runner = setupTest("ownReport_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
     val reportDir = runner.projectDir.resolve("custom-template")
@@ -43,7 +45,6 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   fun `report with custom template from extension`() {
-    rootFolder = { "reportTest" }
     val runner = setupTest("ownReportFromExtension_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
     val reportDir = runner.projectDir.resolve("custom-template")
