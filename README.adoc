@@ -117,7 +117,7 @@ To use the quickstarter you must have gradle installed and available on your pat
 +
 [source,shell script]
 ----
-root> gradle wrapper init
+root> gradle init --dsl kotlin --type basic
 ----
 This brings up the setup. We are going to create a `basic` project and using `Kotlin` as build script DSL.
 2. Create the following folder structure (gradle stuff from 1. left out)
