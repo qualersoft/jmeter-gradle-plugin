@@ -117,7 +117,7 @@ To use the quickstarter you must have gradle installed and available on your pat
 +
 [source,shell script]
 ----
-root> gradle wrapper init
+root> gradle init --dsl kotlin --type basic
 ----
 This brings up the setup. We are going to create a `basic` project and using `Kotlin` as build script DSL.
 2. Create the following folder structure (gradle stuff from 1. left out)
@@ -273,7 +273,7 @@ To see what arguments are supported by a task simply run
 ----
 root> ./gradlew help --task <taskName> <.>
 ----
-<1> with <taskName> being a JMeter*Task defined in your build script.
+<1> with <taskName> being a JMeter*Task defined in your build script. E.g. our 'runTest' task from above.
 
 == Configure jmeter
 As mentioned in the preamble, this plugin is designed to be as flexible as possible. +
@@ -293,7 +293,7 @@ jmeter {
   }
 }
 ----
-[%collapsible%]
+[%collapsible]
 ====
 <1> The group-id of the jmeter-runner. +
 Defaults to 'org.apache.jmeter'.
@@ -321,15 +321,14 @@ By default, this plugin includes the following plugins (as they are also default
 ====
 "bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap", "mail", "mongodb", "native", "tcp"
 ====
-
-[%collapsible%, title=Info]
+[%collapsible, title=Info]
 ====
 At the current time, these plugins are hardwired and cannot be modified. +
 (Yeah, I know so much about flexibility... Mea culpa! 😉)
 ====
 
 === Adding support libraries
-Sometime you have quite special and reusable code that you wouldn't maintain within JMeter. Or you just want to use an existing libraries functions within JMeter. +
+Sometimes you have quite special and reusable code that you wouldn't maintain within JMeter. Or you just want to use an existing libraries functions within JMeter. +
 To make them available to JMeter you can use the `jmeterLibrary` dependency handler
 [source,kotlin]
 ----
@@ -343,4 +342,3 @@ dependencies {
 ====
 Within an IDE with autocomplete, you may also notice the `jmeterRunner` dependency handler. This is for internal use only! Please use the respective `jmeter.tool` properties to configure the runner.
 ====
-

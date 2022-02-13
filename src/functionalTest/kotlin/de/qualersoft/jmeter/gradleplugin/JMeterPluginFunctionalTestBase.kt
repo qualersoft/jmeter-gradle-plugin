@@ -4,21 +4,11 @@ import io.kotest.matchers.string.shouldContain
 import org.gradle.internal.impldep.org.junit.rules.TemporaryFolder
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.Tag
 import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipFile
 
-private const val EXT_GR = ".gradle"
-private const val EXT_KT = "$EXT_GR.kts"
-
 open class JMeterPluginFunctionalTestBase {
-
-  @Tag("groovy")
-  annotation class GroovyTag
-
-  @Tag("kotlin")
-  annotation class KotlinTag
 
   protected val testProjectDir: TemporaryFolder = TemporaryFolder.builder()
     .parentFolder(File("./build/tmp/functionalTest").absoluteFile)
@@ -35,18 +25,12 @@ open class JMeterPluginFunctionalTestBase {
   /**
    * Meant to be overridden if required.
    * If not `null` the whole folder will be copied.
-   * @see setupGroovyTest
-   * @see setupKotlinTest
+   * @see setupTest
    */
   protected var rootFolder: () -> String? = { null }
 
-  protected fun setupKotlinTest(baseFileName: String, debug: Boolean = false): GradleRunner {
-    copyTestFileToTemp(baseFileName, EXT_KT)
-    return createRunner(debug)
-  }
-
-  protected fun setupGroovyTest(baseFileName: String, debug: Boolean = false): GradleRunner {
-    copyTestFileToTemp(baseFileName, EXT_GR)
+  protected fun setupTest(baseFileName: String, ext: String = "gradle.kts", debug: Boolean = false): GradleRunner {
+    copyTestFileToTemp(baseFileName, ext)
     return createRunner(debug)
   }
 
@@ -94,7 +78,8 @@ open class JMeterPluginFunctionalTestBase {
     val tmp = testProjectDir.newFolder()
     val tmpZip = tmp.resolve(resource)
 
-    javaClass.classLoader.getResourceAsStream(resource).copyTo(tmpZip.outputStream())
+    checkNotNull(javaClass.classLoader.getResourceAsStream(resource)) { "Resource '$resource' not found!" }
+      .copyTo(tmpZip.outputStream())
     val zip = ZipFile(tmpZip)
     zip.use { zf ->
       zf.stream().forEach { ze ->
@@ -109,7 +94,7 @@ open class JMeterPluginFunctionalTestBase {
   }
 
   private fun copyTestFileToTemp(resource: String, ext: String): File {
-    var res = resource + ext
+    var res = "$resource.$ext"
     // if we have a root folder
     rootFolder()?.also {
       res = "$it/$res"
@@ -117,17 +102,16 @@ open class JMeterPluginFunctionalTestBase {
 
     val file = File(JMeterPluginFunctionalTestBase::class.java.classLoader.getResource(res)!!.file)
     testProjectDir.create()
-    val result = testProjectDir.newFile("build$ext")
+    val result = testProjectDir.newFile("build.$ext")
     file.inputStream().use { input ->
       result.outputStream().use { output -> input.copyTo(output) }
     }
 
-    val settings = testProjectDir.newFile("settings$ext")
+    val settings = testProjectDir.newFile("settings.$ext")
     settings.writeText("")
 
     return result
   }
-
 
   protected fun File.copyTo(file: File) {
     this.inputStream().toFile(file)

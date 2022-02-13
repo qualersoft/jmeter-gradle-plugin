@@ -8,11 +8,13 @@ import org.junit.jupiter.api.assertAll
 
 class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
 
-  @Test
-  @KotlinTag
-  fun `report with default template`() {
+  init {
     rootFolder = { "reportTest" }
-    val runner = setupKotlinTest("default_build").withArguments("runTest", "reportTest")
+  }
+
+  @Test
+  fun `report with default template`() {
+    val runner = setupTest("default_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -25,10 +27,8 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
   }
 
   @Test
-  @KotlinTag
   fun `report with custom template`() {
-    rootFolder = { "reportTest" }
-    val runner = setupKotlinTest("ownReport_build").withArguments("runTest", "reportTest")
+    val runner = setupTest("ownReport_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
     val reportDir = runner.projectDir.resolve("custom-template")
     copyZipResourceTo("report-template.zip", reportDir)
@@ -44,10 +44,8 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
   }
 
   @Test
-  @KotlinTag
   fun `report with custom template from extension`() {
-    rootFolder = { "reportTest" }
-    val runner = setupKotlinTest("ownReportFromExtension_build").withArguments("runTest", "reportTest")
+    val runner = setupTest("ownReportFromExtension_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
     val reportDir = runner.projectDir.resolve("custom-template")
     copyZipResourceTo("report-template.zip", reportDir)
