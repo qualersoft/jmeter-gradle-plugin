@@ -7,7 +7,6 @@ import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import kotlin.test.assertTrue
 
 /**
  * A simple functional test for the 'de.qualersoft.jmeter' plugin.
@@ -26,7 +25,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val result = runner.build()
 
-    assertTrue(result.output.contains("runTest"))
+    result.output shouldContain "runTest"
   }
 
   @Test

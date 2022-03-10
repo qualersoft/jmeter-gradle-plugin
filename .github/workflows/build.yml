@@ -79,11 +79,11 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Unit test cache"
+      - name: "Unit test coverage cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-test-${{ github.run_id }}
+          path: ${{ github.workspace }}/build/jacoco/**
+          key: ${{ runner.os }}-jacoco-${{ github.run_id }}
 
       - name: "Unit test"
         uses: burrunan/gradle-cache-action@v1
@@ -115,20 +115,18 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Functional test cache"
+      - name: "Functional test coverage cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-functionalTest-${{ github.run_id }}
+          path: ${{ github.workspace }}/build/jacoco/**
+          key: ${{ runner.os }}-jacoco-${{ github.run_id }}
 
       - name: "Execute Functional tests"
         uses: burrunan/gradle-cache-action@v1
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
-          arguments: |
-            functionalTest
-            jacocoFunctionalTestReport
+          arguments: functionalTest
 
       - name: "Publish functional test results"
         uses: EnricoMi/publish-unit-test-result-action@v1
@@ -153,17 +151,18 @@ jobs:
       - name: "Check out sources"
         uses: actions/checkout@v2
 
-      - name: "Load test cache"
+      - name: "Load coverage cache"
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-test-${{ github.run_id }}
+          path: ${{ github.workspace }}/build/jacoco/**
+          key: ${{ runner.os }}-jacoco-${{ github.run_id }}
 
-      - name: "Load functional test cache"
-        uses: actions/cache@v2
+      - name: "Create coverage report"
+        uses: burrunan/gradle-cache-action@v1
         with:
-          path: ${{ github.workspace }}/build/reports/jacoco/**
-          key: ${{ runner.os }}-functionalTest-${{ github.run_id }}
+          remote-build-cache-proxy-enabled: false
+          save-local-build-cache: false
+          arguments: jacocoTestReport
 
       - name: "Publish Report"
         uses: codecov/codecov-action@v2
