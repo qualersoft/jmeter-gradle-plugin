@@ -111,7 +111,6 @@ tasks {
     this.jvmTarget = javaVersion.toString()
   }
 
-
   // Setup functional test sets
   val functionalTest: TaskProvider<Test> by registering(Test::class) {
     description = "Run the functional tests"
