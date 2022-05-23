@@ -3,12 +3,11 @@ import de.qualersoft.parseSemVer
 plugins {
   // implementation
   `java-gradle-plugin`
-  kotlin("jvm") version "1.5.30"
+  kotlin("jvm") version "1.6.10"
 
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
-  id("org.unbroken-dome.test-sets") version "4.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
   // documentation
@@ -27,29 +26,20 @@ repositories {
   mavenCentral()
 }
 
-testSets {
-  "functionalTest" {
-    description = "Runs the functional tests"
-  }
-}
-
 dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  // Use the Kotlin JDK 8 standard library.
-  implementation(kotlin("stdlib-jdk8"))
-
   testImplementation(platform("org.junit:junit-bom:5.7.2"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
-
-  testImplementation(kotlin("test-junit5"))
-
-  testImplementation(group = "io.kotest", name = "kotest-runner-junit5", version = "4.6.2")
-  testImplementation(group = "io.kotest", name = "kotest-assertions-core-jvm", version = "4.6.2")
+  testImplementation(group = "io.kotest", name = "kotest-runner-junit5", version = "4.6.4")
 
   testRuntimeOnly(kotlin("script-runtime"))
 }
+
+// Add a source set for the functional test suite
+val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest")
+configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
 
 gradlePlugin {
   // Define the plugin
@@ -60,7 +50,7 @@ gradlePlugin {
     displayName = "jmeter gradle plugin"
     description = "Plugin to execute JMeter tests."
   }
-  testSourceSets(*sourceSets.filter { it.name.contains("test", true) }.toTypedArray())
+  testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
 }
 
 pluginBundle {
@@ -90,37 +80,18 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
   status = "snapshot"
 }
 
-val javaVersion = JavaVersion.VERSION_11
+val javaVersion = JavaVersion.VERSION_1_8
 java {
   targetCompatibility = javaVersion
   withSourcesJar()
   withJavadocJar()
 }
 
-// Setup functional test sets
-val functionalTestTask = tasks.named<Test>("functionalTest") {
-  description = "Run the functional tests"
-  group = "verification"
-  testClassesDirs = sourceSets.named("functionalTest").get().output.classesDirs
-  classpath = sourceSets.named("functionalTest").get().runtimeClasspath
-
-  useJUnitPlatform()
-  shouldRunAfter(tasks.test)
-  dependsOn(tasks.jar, tasks.named("generateJacocoFunctionalTestKitProperties"))
-  applyJacocoWorkaround()
-}
-
-jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTestTask as TaskProvider<Task>)
-
 // Configure gradle-changelog-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
   version.set(project.version.toString())
   groups.set(emptyList())
-}
-
-tasks.check {
-  dependsOn(functionalTestTask)
 }
 
 tasks {
@@ -137,13 +108,23 @@ tasks {
 
   this.detekt {
     // Target version of the generated JVM bytecode. It is used for type resolution.
-    this.jvmTarget = JavaVersion.VERSION_11.toString()
+    this.jvmTarget = javaVersion.toString()
   }
 
-  test {
-    useJUnitPlatform()
+  // Setup functional test sets
+  val functionalTest: TaskProvider<Test> by registering(Test::class) {
+    description = "Run the functional tests"
+    group = "verification"
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = sourceSets.named("functionalTest").get().runtimeClasspath
+    shouldRunAfter(test)
+    dependsOn(jar)
+    applyJacocoWorkaround()
   }
-
+  jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTest as TaskProvider<Task>)
+  check {
+    dependsOn(functionalTest)
+  }
   pluginUnderTestMetadata {
     // https://discuss.gradle.org/t/how-to-make-gradle-testkit-depend-on-output-jar-rather-than-just-classes/18940/2
     val gradlePlgExt = project.extensions.getByName<GradlePluginDevelopmentExtension>("gradlePlugin")
@@ -157,10 +138,16 @@ tasks {
     mustRunAfter(jar)
   }
 
-  withType<JacocoReport>().configureEach {
+  withType<Test>().configureEach {
+    useJUnitPlatform()
+  }
+
+  withType<JacocoReport> {
+    executionData(withType<Test>())
     reports {
-      xml.required.set(true)
+      csv.required.set(false)
       html.required.set(true)
+      xml.required.set(true)
     }
   }
 
@@ -170,14 +157,6 @@ tasks {
 
   javadoc {
     dependsOn(dokkaJavadoc)
-  }
-
-  // the following merge tasks are only for local execution and not meant to be used pipeline!!!
-  register<JacocoReport>("jacocoMergedReports") {
-    group = "verification"
-    additionalClassDirs(sourceSets.main.get().output.classesDirs)
-    additionalSourceDirs(sourceSets.main.get().allSource.sourceDirectories)
-    withType<Test>().map { executionData(it) }
   }
 }
 
@@ -239,6 +218,7 @@ fun getGradlePropsFile(): File {
   }
   return propsFile
 }
+
 object LOCK {
   const val waitMillis = 200L
   const val maxTries = 100

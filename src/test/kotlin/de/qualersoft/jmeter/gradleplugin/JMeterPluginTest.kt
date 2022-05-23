@@ -1,6 +1,5 @@
 package de.qualersoft.jmeter.gradleplugin
 
-import io.kotest.fp.firstOption
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.contain
@@ -40,7 +39,7 @@ class JMeterPluginTest {
   @Test
   fun `plugin should register clean task by default`() {
     val prj = applyPlugin()
-    val cleanTask = prj.getTasksByName("clean", false).firstOption().orNull()
+    val cleanTask = prj.getTasksByName("clean", false).firstOrNull()
     assertAll(
       { cleanTask shouldNot beNull() },
       { cleanTask?.description shouldContain "jmeter" }
@@ -54,7 +53,7 @@ class JMeterPluginTest {
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
     }
 
-    val cleanTask = prj.getTasksByName("clean", false).firstOption().orNull()
+    val cleanTask = prj.getTasksByName("clean", false).firstOrNull()
     assertAll(
       { cleanTask shouldNot beNull() },
       { cleanTask?.description shouldNot contain("jmeter") }

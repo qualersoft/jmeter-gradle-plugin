@@ -6,6 +6,11 @@ on:
       release_kind:
         description: 'Kind of the release. One of `major`, `minor`, `patch`, `snapshot`.'
         required: true
+        options:
+          - major
+          - minor
+          - patch
+          - snapshot
 
 jobs:
   craft_new_release:
