@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+### Changed
+- Aligned required java version with JMeter to Java8 (#36)
 
 ## [2.2.0]
 ### Changed

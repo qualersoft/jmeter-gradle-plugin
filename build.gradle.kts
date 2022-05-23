@@ -80,7 +80,7 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
   status = "snapshot"
 }
 
-val javaVersion = JavaVersion.VERSION_11
+val javaVersion = JavaVersion.VERSION_1_8
 java {
   targetCompatibility = javaVersion
   withSourcesJar()
