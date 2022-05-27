@@ -6,6 +6,7 @@ on:
       release_kind:
         description: 'Kind of the release. One of `major`, `minor`, `patch`, `snapshot`.'
         required: true
+        type: choice
         options:
           - major
           - minor
