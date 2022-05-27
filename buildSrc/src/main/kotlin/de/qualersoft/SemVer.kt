@@ -29,7 +29,9 @@ data class SemVer(
   }
 
   fun nextPatch(build: String? = null): SemVer {
-    patch += 1
+    if (null == preBuild) { // no snapshot -> increase patch
+      patch += 1
+    }
     preBuild = null
     this.build = build
     return this
