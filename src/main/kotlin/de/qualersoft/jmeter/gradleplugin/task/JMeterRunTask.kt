@@ -1,6 +1,8 @@
 package de.qualersoft.jmeter.gradleplugin.task
 
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
+import de.qualersoft.jmeter.gradleplugin.listProperty
+import de.qualersoft.jmeter.gradleplugin.property
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.Input
@@ -67,6 +69,92 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   @Input
   var generateReport: Boolean = false
 
+
+
+  //<editor-fold desc="Proxy configuration">
+  /**
+   * proxy scheme to use - optional - for non-http
+   * 
+   * E.g. `https`
+   */
+  @Input
+  @Optional
+  val proxyScheme = objectFactory.property<String>()
+    .value(jmExt.proxyScheme)
+
+  @Option(
+    option = "E",
+    description = """proxy scheme to use - optional - for non-http
+      Example: --E=https
+    """
+  )
+  fun setProxyScheme(scheme: String) {
+    proxyScheme.value(scheme)
+  }
+
+  /**
+   * proxy server hostname or ip address
+   */
+  @Input
+  @Optional
+  val proxyHost = objectFactory.property<String>()
+    .value(jmExt.proxyHost)
+
+  @Option(
+    option = "H",
+    description = "proxy scheme to use - optional - for non-http"
+  )
+  fun setProxyHost(host: String) {
+    proxyHost.value(host)
+  }
+  /**
+   * proxy server port
+   */
+  @Input
+  @Optional
+  val proxyPort = objectFactory.property<Int>()
+    .value(jmExt.proxyPort)
+
+  @Option(option = "PP", description = "proxy server port")
+  fun setProxyPort(port: String) {
+    port.toIntOrNull()?.let { 
+      proxyPort.value(it)
+    } ?: throw IllegalArgumentException("Port must be a valid number! Got >$port<.")
+  }
+
+  /**
+   * nonproxy hosts (e.g. *.apache.org, localhost)
+   */
+  @Input
+  @Optional
+  val nonProxyHosts = objectFactory.listProperty<String>()
+    .value(jmExt.nonProxyHosts)
+
+  @Option(option = "N", description = """nonproxy hosts
+        Usage:
+        1) --N=*.apache.org --N=localhost
+        2) --N *.apache.org --N localhost""")
+  fun setNonProxyHosts(hosts: List<String>) {
+    nonProxyHosts.value(hosts)
+  }
+
+  @Input
+  @Optional
+  val username = objectFactory.property<String>()
+  @Option(option = "u", description = "username for proxy authentication - if required")
+  fun setUsername(name: String) {
+    username.value(name)
+  }
+
+  @Input
+  @Optional
+  val password = objectFactory.property<String>()
+  @Option(option = "pwd", description = "password for proxy authentication - if required")
+  fun setPassword(pwd: String) {
+    password.value(pwd)
+  }
+  //</editor-fold>
+
   override fun createRunArguments() = mutableListOf<String>().apply {
     add("-n") // no gui
 
@@ -78,6 +166,45 @@ open class JMeterRunTask : JMeterExecBaseTask() {
     }
     globalProperties.get().forEach { (k, v) ->
       add("-G$k=$v")
+    }
+
+    if (proxyScheme.isPresent) {
+      add("-E")
+      add(proxyScheme.get())
+    }
+
+    if (proxyHost.isPresent) {
+      add("-H")
+      add(proxyHost.get())
+    }
+
+    if (proxyPort.isPresent) {
+      add("-P")
+      add(proxyPort.get().toString())
+    }
+    
+    if (username.isPresent) {
+      add("-u")
+      val usr = username.get()
+      maskOutput.add(usr)
+      add(usr)
+    }
+    
+    if (password.isPresent) {
+      add("-a")
+      val pwd = password.get()
+      maskOutput.add(pwd)
+      add(pwd)
+    }
+
+    if (nonProxyHosts.isPresent) {
+      val nph = nonProxyHosts.get().joinToString("|") {
+        it.trim()
+      }
+      if (nph.isNotEmpty()) {
+        add("-N")
+        add(nph)
+      }
     }
 
     addJmxFile(this)

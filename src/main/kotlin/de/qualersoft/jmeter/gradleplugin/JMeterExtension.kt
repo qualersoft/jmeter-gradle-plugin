@@ -6,9 +6,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 
 /**
@@ -48,7 +45,7 @@ open class JMeterExtension(private val project: Project) {
   /**
    * Define additional system properties.
    */
-  val systemProperties: MapProperty<String, String> = objects.propertyMap()
+  val systemProperties = objects.mapProperty<String, String>()
 
   /**
    * The jmeter property file to use.
@@ -63,7 +60,7 @@ open class JMeterExtension(private val project: Project) {
   /**
    * Define additional JMeter properties.
    */
-  val jmeterProperties: MapProperty<String, String> = objects.propertyMap()
+  val jmeterProperties = objects.mapProperty<String, String>()
 
   /**
    * Path to a custom report-template folder used by report generator.
@@ -78,7 +75,29 @@ open class JMeterExtension(private val project: Project) {
   /**
    * Properties which will be sent to remote servers.
    */
-  val globalProperties: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+  val globalProperties = objects.mapProperty<String, String>()
+  //</editor-fold>
+
+  //<editor-fold desc="Proxy configuration">
+  /**
+   * Proxy scheme to use - optional - for non-http
+   */
+  val proxyScheme = objects.property<String>()
+
+  /**
+   * Proxy server hostname or ip address
+   */
+  val proxyHost = objects.property<String>()
+
+  /**
+   * Proxy server port
+   */
+  val proxyPort = objects.property<Int>()
+
+  /**
+   * Non-proxy hosts (e.g. *.apache.org, localhost)
+   */
+  val nonProxyHosts = objects.listProperty<String>()
   //</editor-fold>
 
   //<editor-fold desc="Logging configuration">
@@ -91,10 +110,10 @@ open class JMeterExtension(private val project: Project) {
 
   /**
    * File where jmeter log will be written to.
-   * 
+   *
    * Defaults to `<buildDir>/logs/jmeter.log`
    */
-  val logOutputFile: RegularFileProperty = objects.fileProperty().convention( 
+  val logOutputFile: RegularFileProperty = objects.fileProperty().convention(
     layout.buildDirectory.file("logs/jmeter.log")
   )
   //</editor-fold>
@@ -129,12 +148,12 @@ open class JMeterExtension(private val project: Project) {
   /**
    * Declares the maximum heap size of the JVM process.
    */
-  val maxHeap: Property<String> = objects.property(String::class.java)
+  val maxHeap = objects.property<String>()
 
   /**
    * JVM-arguments that will be passed to the java process which executes jMeter.
    */
-  val jvmArgs: ListProperty<String> = objects.listProperty(String::class.java)
+  val jvmArgs = objects.listProperty<String>()
 
   /**
    * Creates task which starts the jMeter GUI.

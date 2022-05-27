@@ -1,6 +1,9 @@
 package de.qualersoft.jmeter.gradleplugin
 
+import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
+import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -58,6 +61,34 @@ class JMeterSetupFunctionalTest : JMeterPluginFunctionalTestBase() {
     val result = runner.build()
 
     result.output shouldContain "Reconfiguring tools dependencies in groovy"
+  }
+
+  @Test
+  fun `can add additional libraries`() {
+    val runner = setupTest("withAdditionalLib").withArguments("setupJMeter")
+    val jmLibDir = runner.projectDir.resolve("build/jmeter/lib")
+    runner.build()
+
+    val libJars = jmLibDir.listFiles { file: File ->
+      "jar" == file.extension &&
+        file.name.contains("javax.annotation-api-1.3.2")
+    }?.toList() ?: listOf()
+
+    libJars should haveSize(1)
+  }
+
+  @Test
+  fun `run setup twice`() {
+    val runner = setupTest("twoSetupTasks").withArguments("setupJMeter", "setup2")
+    val result = runner.build()
+
+    val output = result.output
+
+    assertAll(
+      { output should contain("> Task :setupJMeter") },
+      { output should contain("> Task :setup2") },
+      { output should contain("2 actionable tasks: 2 executed") }
+    )
   }
 
   /**

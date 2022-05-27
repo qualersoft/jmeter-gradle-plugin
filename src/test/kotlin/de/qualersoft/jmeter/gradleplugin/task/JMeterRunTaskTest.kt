@@ -4,7 +4,13 @@ import de.qualersoft.jmeter.gradleplugin.entryEndsWith
 import de.qualersoft.jmeter.gradleplugin.matchingEntry
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.contain
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldContainInOrder
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldHave
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotHave
@@ -88,5 +94,212 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
 
     val args = task.createRunArguments()
     args shouldNot contain("-f")
+  }
+
+  @Test
+  fun withAllProxySettingsFromExtension() {
+    val scheme = "https"
+    val host = "127.0.0.1"
+    val port = 8080
+    val nonHosts = listOf("localhost", "localhorst")
+    val task = createTaskWithConfig<JMeterRunTask>({
+      proxyScheme.set(scheme)
+      proxyHost.set(host)
+      proxyPort.set(port)
+      nonProxyHosts.addAll(nonHosts)
+    }, {}).get()
+    assertAll(
+      { task.proxyScheme.get() shouldBe scheme },
+      { task.proxyHost.get() shouldBe host },
+      { task.proxyPort.get() shouldBe port },
+      { task.nonProxyHosts.get() should containExactlyInAnyOrder(nonHosts) }
+    )
+  }
+
+  @Test
+  fun withProxySettingsFromExtensionOverridden() {
+    val extScheme = "smtp"
+    val extHost = "10.3.5.42"
+    val extPort = 666
+    val extNonHost = "example.com"
+
+    val scheme = "https"
+    val host = "127.0.0.1"
+    val port = 8080
+    val nonHosts = listOf("localhost", "localhorst")
+    val task = createTaskWithConfig<JMeterRunTask>({
+      proxyScheme.set(extScheme)
+      proxyHost.set(extHost)
+      proxyPort.set(extPort)
+      nonProxyHosts.add(extNonHost)
+    }, {
+      proxyScheme.set(scheme)
+      proxyHost.set(host)
+      proxyPort.set(port)
+      nonProxyHosts.addAll(nonHosts)
+    }).get()
+
+    val ext = getExtension()
+
+    assertAll(
+      { withClue("ext Scheme") { ext.proxyScheme.get() shouldBe extScheme }},
+      { withClue("ext Host") { ext.proxyHost.get() shouldBe extHost }},
+      { withClue("ext Port") { ext.proxyPort.get() shouldBe extPort }},
+      { withClue("ext nonProxyHost size") { ext.nonProxyHosts.get() should haveSize(1) }},
+      { withClue("ext nonProxyHosts") { ext.nonProxyHosts.get() should containExactly(extNonHost) }},
+      { withClue("task Scheme") { task.proxyScheme.get() shouldBe scheme }},
+      { withClue("task Host") { task.proxyHost.get() shouldBe host }},
+      { withClue("task Port") { task.proxyPort.get() shouldBe port }},
+      { withClue("task nonProxyHosts") { 
+        task.nonProxyHosts.get() should containExactlyInAnyOrder(nonHosts + extNonHost) } 
+      }
+    )
+  }
+
+  @Test
+  fun withSchemeOnly() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      proxyScheme.set("smtp1234")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("Scheme") { args shouldContainInOrder listOf("-E", "smtp1234") } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withHostOnly() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      proxyHost.set("localhost")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("Host") { args shouldContainInOrder listOf("-H", "localhost") } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withPortOnly() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      proxyPort.set(42)
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("Port") { args shouldContainInOrder listOf("-P", "42")} },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withNonProxy() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      nonProxyHosts.add("localHorst")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst" )} },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withMultipleNonProxy() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      nonProxyHosts.addAll("localHorst", "127.0.0.42")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst|127.0.0.42" )} },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  /**
+   * Corner case
+   * `Null` could be introduced through build script logic
+   */
+  @Test
+  fun withNonProxyNulled() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      nonProxyHosts.set(null as List<String>?)
+      jmxFile.set("Report.jmx")
+    }).get()
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withUsername() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      username.set("proxyUser")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("User") { args shouldContainInOrder listOf("-u", "proxyUser") } },
+      { withClue("no Password") { args shouldNotContain "-a" } }
+    )
+  }
+
+  @Test
+  fun withPassword() {
+    val task = createTaskWithConfig<JMeterRunTask>({}, {
+      password.set("Secret")
+      jmxFile.set("Report.jmx")
+    }).get()
+
+    val args = task.createRunArguments()
+    assertAll("Only Scheme arg",
+      { withClue("no Scheme") { args shouldNotContain "-E" } },
+      { withClue("no Host") { args shouldNotContain "-H" } },
+      { withClue("no Port") { args shouldNotContain "-P" } },
+      { withClue("no NonProxy") { args shouldNotContain "-N" } },
+      { withClue("no User") { args shouldNotContain "-u" } },
+      { withClue("Password") { args shouldContainInOrder listOf("-a", "Secret") } }
+    )
   }
 }

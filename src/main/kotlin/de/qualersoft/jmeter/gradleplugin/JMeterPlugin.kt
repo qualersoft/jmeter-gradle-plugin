@@ -7,7 +7,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.language.base.internal.plugins.CleanRule
@@ -98,8 +97,6 @@ class JMeterPlugin : Plugin<Project> {
     project.tasks.register(JMETER_SETUP_TASK_NAME, JMeterSetupTask::class.java)
   }
 }
-
-internal fun ObjectFactory.propertyMap() = this.mapProperty(String::class.java, String::class.java)
 
 /**
  * Main

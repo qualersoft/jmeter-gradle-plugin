@@ -101,7 +101,7 @@ class JMeterConfig(private val project: Project) {
   /**
    * Workaround for invalid bom reference in jmeter-module-descriptor.
    *
-   * Details see [https://bz.apache.org/bugzilla/show_bug.cgi?id=64465]
+   * Details see [Issue 64465](https://bz.apache.org/bugzilla/show_bug.cgi?id=64465)
    */
   fun applyBomWorkaround(dependency: Dependency): Dependency {
     if (dependency is ExternalModuleDependency) {
