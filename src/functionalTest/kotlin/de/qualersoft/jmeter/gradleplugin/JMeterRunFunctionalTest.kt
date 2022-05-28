@@ -244,7 +244,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     fun `scheme can be set through cli`() {
       val result = defaultRunner("--E", "sftp")
         .build()
-      
+
       result.output shouldContain ", -E, sftp"
     }
 

@@ -262,7 +262,7 @@ abstract class JMeterBaseTask : JavaExec() {
     val (key, value) = it.split("=".toRegex(), 2)
     key to value
   }
-  
+
   companion object {
     private const val MASK = "****"
   }

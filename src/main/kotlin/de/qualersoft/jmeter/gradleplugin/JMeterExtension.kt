@@ -36,7 +36,7 @@ open class JMeterExtension(private val project: Project) {
     action.execute(tool)
   }
 
-  //<editor-fold desc="JMeter-Property configurations">
+  // <editor-fold desc="JMeter-Property configurations">
   /**
    * Additional system property file(s).
    */
@@ -76,9 +76,9 @@ open class JMeterExtension(private val project: Project) {
    * Properties which will be sent to remote servers.
    */
   val globalProperties = objects.mapProperty<String, String>()
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Proxy configuration">
+  // <editor-fold desc="Proxy configuration">
   /**
    * Proxy scheme to use - optional - for non-http
    */
@@ -98,9 +98,9 @@ open class JMeterExtension(private val project: Project) {
    * Non-proxy hosts (e.g. *.apache.org, localhost)
    */
   val nonProxyHosts = objects.listProperty<String>()
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Logging configuration">
+  // <editor-fold desc="Logging configuration">
   /**
    * Path to the logger-configuration file (attow `log4j2.xml`) required by jmeter.
    *
@@ -116,7 +116,7 @@ open class JMeterExtension(private val project: Project) {
   val logOutputFile: RegularFileProperty = objects.fileProperty().convention(
     layout.buildDirectory.file("logs/jmeter.log")
   )
-  //</editor-fold>
+  // </editor-fold>
 
   /**
    * Root directory used by tasks to resolve its jmxFile.

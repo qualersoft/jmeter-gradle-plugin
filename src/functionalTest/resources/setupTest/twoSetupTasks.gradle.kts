@@ -1,4 +1,4 @@
-import de.qualersoft.jmeter.gradleplugin.task.*
+import de.qualersoft.jmeter.gradleplugin.task.JMeterSetupTask
 
 plugins {
   id("de.qualersoft.jmeter")

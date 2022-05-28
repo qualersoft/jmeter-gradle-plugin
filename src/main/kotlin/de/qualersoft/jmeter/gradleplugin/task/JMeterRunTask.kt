@@ -70,11 +70,10 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   var generateReport: Boolean = false
 
 
-
-  //<editor-fold desc="Proxy configuration">
+  // <editor-fold desc="Proxy configuration">
   /**
    * proxy scheme to use - optional - for non-http
-   * 
+   *
    * E.g. `https`
    */
   @Input
@@ -107,6 +106,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   fun setProxyHost(host: String) {
     proxyHost.value(host)
   }
+
   /**
    * proxy server port
    */
@@ -117,7 +117,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
 
   @Option(option = "PP", description = "proxy server port")
   fun setProxyPort(port: String) {
-    port.toIntOrNull()?.let { 
+    port.toIntOrNull()?.let {
       proxyPort.value(it)
     } ?: throw IllegalArgumentException("Port must be a valid number! Got >$port<.")
   }
@@ -130,10 +130,12 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   val nonProxyHosts = objectFactory.listProperty<String>()
     .value(jmExt.nonProxyHosts)
 
-  @Option(option = "N", description = """nonproxy hosts
+  @Option(
+    option = "N", description = """nonproxy hosts
         Usage:
         1) --N=*.apache.org --N=localhost
-        2) --N *.apache.org --N localhost""")
+        2) --N *.apache.org --N localhost"""
+  )
   fun setNonProxyHosts(hosts: List<String>) {
     nonProxyHosts.value(hosts)
   }
@@ -141,6 +143,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   @Input
   @Optional
   val username = objectFactory.property<String>()
+
   @Option(option = "u", description = "username for proxy authentication - if required")
   fun setUsername(name: String) {
     username.value(name)
@@ -149,11 +152,12 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   @Input
   @Optional
   val password = objectFactory.property<String>()
+
   @Option(option = "pwd", description = "password for proxy authentication - if required")
   fun setPassword(pwd: String) {
     password.value(pwd)
   }
-  //</editor-fold>
+  // </editor-fold>
 
   override fun createRunArguments() = mutableListOf<String>().apply {
     add("-n") // no gui
@@ -182,14 +186,14 @@ open class JMeterRunTask : JMeterExecBaseTask() {
       add("-P")
       add(proxyPort.get().toString())
     }
-    
+
     if (username.isPresent) {
       add("-u")
       val usr = username.get()
       maskOutput.add(usr)
       add(usr)
     }
-    
+
     if (password.isPresent) {
       add("-a")
       val pwd = password.get()

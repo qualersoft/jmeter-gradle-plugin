@@ -142,16 +142,18 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
     val ext = getExtension()
 
     assertAll(
-      { withClue("ext Scheme") { ext.proxyScheme.get() shouldBe extScheme }},
-      { withClue("ext Host") { ext.proxyHost.get() shouldBe extHost }},
-      { withClue("ext Port") { ext.proxyPort.get() shouldBe extPort }},
-      { withClue("ext nonProxyHost size") { ext.nonProxyHosts.get() should haveSize(1) }},
-      { withClue("ext nonProxyHosts") { ext.nonProxyHosts.get() should containExactly(extNonHost) }},
-      { withClue("task Scheme") { task.proxyScheme.get() shouldBe scheme }},
-      { withClue("task Host") { task.proxyHost.get() shouldBe host }},
-      { withClue("task Port") { task.proxyPort.get() shouldBe port }},
-      { withClue("task nonProxyHosts") { 
-        task.nonProxyHosts.get() should containExactlyInAnyOrder(nonHosts + extNonHost) } 
+      { withClue("ext Scheme") { ext.proxyScheme.get() shouldBe extScheme } },
+      { withClue("ext Host") { ext.proxyHost.get() shouldBe extHost } },
+      { withClue("ext Port") { ext.proxyPort.get() shouldBe extPort } },
+      { withClue("ext nonProxyHost size") { ext.nonProxyHosts.get() should haveSize(1) } },
+      { withClue("ext nonProxyHosts") { ext.nonProxyHosts.get() should containExactly(extNonHost) } },
+      { withClue("task Scheme") { task.proxyScheme.get() shouldBe scheme } },
+      { withClue("task Host") { task.proxyHost.get() shouldBe host } },
+      { withClue("task Port") { task.proxyPort.get() shouldBe port } },
+      {
+        withClue("task nonProxyHosts") {
+          task.nonProxyHosts.get() should containExactlyInAnyOrder(nonHosts + extNonHost)
+        }
       }
     )
   }
@@ -203,7 +205,7 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
     assertAll("Only Scheme arg",
       { withClue("no Scheme") { args shouldNotContain "-E" } },
       { withClue("no Host") { args shouldNotContain "-H" } },
-      { withClue("Port") { args shouldContainInOrder listOf("-P", "42")} },
+      { withClue("Port") { args shouldContainInOrder listOf("-P", "42") } },
       { withClue("no NonProxy") { args shouldNotContain "-N" } },
       { withClue("no User") { args shouldNotContain "-u" } },
       { withClue("no Password") { args shouldNotContain "-a" } }
@@ -222,7 +224,7 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
       { withClue("no Scheme") { args shouldNotContain "-E" } },
       { withClue("no Host") { args shouldNotContain "-H" } },
       { withClue("no Port") { args shouldNotContain "-P" } },
-      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst" )} },
+      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst") } },
       { withClue("no User") { args shouldNotContain "-u" } },
       { withClue("no Password") { args shouldNotContain "-a" } }
     )
@@ -240,7 +242,7 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
       { withClue("no Scheme") { args shouldNotContain "-E" } },
       { withClue("no Host") { args shouldNotContain "-H" } },
       { withClue("no Port") { args shouldNotContain "-P" } },
-      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst|127.0.0.42" )} },
+      { withClue("NonProxy") { args shouldContainInOrder listOf("-N", "localHorst|127.0.0.42") } },
       { withClue("no User") { args shouldNotContain "-u" } },
       { withClue("no Password") { args shouldNotContain "-a" } }
     )

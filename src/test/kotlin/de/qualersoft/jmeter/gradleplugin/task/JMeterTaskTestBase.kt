@@ -30,5 +30,5 @@ open class JMeterTaskTestBase {
     }.tasks.register(T::class.simpleName!!, T::class.java)
   }
 
-  protected fun getExtension():JMeterExtension = project.extensions.getByType(JMeterExtension::class.java)
+  protected fun getExtension(): JMeterExtension = project.extensions.getByType(JMeterExtension::class.java)
 }
