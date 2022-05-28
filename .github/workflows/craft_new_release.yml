@@ -7,6 +7,7 @@ on:
         description: 'Kind of the release. One of `major`, `minor`, `patch`, `snapshot`.'
         required: true
         type: choice
+        default: ""
         options:
           - major
           - minor
