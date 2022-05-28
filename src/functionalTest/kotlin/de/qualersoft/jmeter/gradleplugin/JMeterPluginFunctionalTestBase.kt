@@ -44,7 +44,6 @@ open class JMeterPluginFunctionalTestBase {
 
   private fun createRunner(debug: Boolean) = GradleRunner.create()
     .withProjectDir(testProjectDir.root)
-    // Attention: do not enable debug! Details see https://github.com/gradle/gradle/issues/6862
     .withPluginClasspath()
     .withDebug(debug)
     .withTestKitDir(testProjectDir.newFolder())

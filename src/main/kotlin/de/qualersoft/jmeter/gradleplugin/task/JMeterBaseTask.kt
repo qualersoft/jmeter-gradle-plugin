@@ -2,7 +2,7 @@ package de.qualersoft.jmeter.gradleplugin.task
 
 import de.qualersoft.jmeter.gradleplugin.JMETER_SETUP_TASK_NAME
 import de.qualersoft.jmeter.gradleplugin.JMeterExtension
-import de.qualersoft.jmeter.gradleplugin.propertyMap
+import de.qualersoft.jmeter.gradleplugin.mapProperty
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
@@ -50,7 +50,7 @@ abstract class JMeterBaseTask : JavaExec() {
 
   @Input
   @Optional
-  val jmSystemProperties: MapProperty<String, String> = objectFactory.propertyMap()
+  val jmSystemProperties: MapProperty<String, String> = objectFactory.mapProperty<String, String>()
     .value(jmExt.systemProperties)
 
   @Option(
@@ -104,7 +104,7 @@ abstract class JMeterBaseTask : JavaExec() {
    */
   @Input
   @Optional
-  val jmeterProperties: MapProperty<String, String> = objectFactory.propertyMap()
+  val jmeterProperties: MapProperty<String, String> = objectFactory.mapProperty<String, String>()
     .value(jmExt.jmeterProperties)
 
   @Option(
@@ -169,6 +169,9 @@ abstract class JMeterBaseTask : JavaExec() {
   private val jmToolJar: RegularFileProperty = objectFactory.fileProperty()
     .value(setupTask.map { it.jmJar.get() })
 
+  @Internal
+  protected val maskOutput = mutableListOf<String>()
+
   init {
     group = "jmeter"
     mainClass.value(jmExt.tool.mainClass)
@@ -196,7 +199,17 @@ abstract class JMeterBaseTask : JavaExec() {
 
     jvmArgs(jmExt.jvmArgs.get())
     args(createRunArguments())
-    log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
+    if (maskOutput.isEmpty()) {
+      log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
+    } else {
+      var maskJvmArgs = jvmArgs.toString()
+      var maskArgs = args.toString()
+      maskOutput.forEach {
+        maskJvmArgs = maskJvmArgs.replace(it, MASK)
+        maskArgs = maskArgs.replace(it, MASK)
+      }
+      log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", maskJvmArgs, maskArgs)
+    }
     super.exec()
   }
 
@@ -248,5 +261,9 @@ abstract class JMeterBaseTask : JavaExec() {
   protected fun parseCliListToMap(keyValues: List<String>) = keyValues.associate {
     val (key, value) = it.split("=".toRegex(), 2)
     key to value
+  }
+
+  companion object {
+    private const val MASK = "****"
   }
 }

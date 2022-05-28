@@ -5,6 +5,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
@@ -234,5 +235,80 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
       { report should exist() },
       { report.readText() should contain("<title>My own") }
     )
+  }
+
+  @Nested
+  inner class ProxySettings {
+
+    @Test
+    fun `scheme can be set through cli`() {
+      val result = defaultRunner("--E", "sftp")
+        .build()
+
+      result.output shouldContain ", -E, sftp"
+    }
+
+    @Test
+    fun `proxy host can be set through cli`() {
+      val result = defaultRunner("--H", "localhost")
+        .build()
+
+      result.output shouldContain ", -H, localhost"
+    }
+
+    @Test
+    fun `using non numerical proxy port should fail`() {
+      val port = "N0P0r7"
+      val result = defaultRunner("--PP", port)
+        .buildAndFail()
+
+      result.output shouldContain "Port must be a valid number! Got >$port<"
+    }
+
+    @Test
+    fun `port with valid format gets set`() {
+      val port = "42"
+      val result = defaultRunner("--PP", port)
+        .build()
+
+      result.output shouldContain ", -P, $port,"
+    }
+
+    @Test
+    fun `setting one non proxy hosts through cli should work`() {
+      val result = defaultRunner("--N", "localhost")
+        .build()
+
+      result.output shouldContain ", -N, localhost"
+    }
+
+    @Test
+    fun `setting multiple non proxy hosts through cli should work`() {
+      val result = defaultRunner("--N", "localhost", "--N", "example.com")
+        .build()
+
+      result.output shouldContain ", -N, localhost|example.com"
+    }
+
+    @Test
+    fun `password must be masked in output`() {
+      val result = defaultRunner("--pwd", "IWillGetMasked")
+        .build()
+
+      result.output shouldContain ", -a, ****,"
+    }
+
+    @Test
+    fun `username must be masked in output`() {
+      val result = defaultRunner("--u", "IWillGetMasked")
+        .build()
+
+      result.output shouldContain ", -u, ****,"
+    }
+
+    private fun defaultRunner(vararg arguments: String) = setupTest("default_build")
+      .withArguments("runTest", *arguments).also {
+        copyJmxToDefaultLocation()
+      }
   }
 }
