@@ -69,7 +69,6 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   @Input
   var generateReport: Boolean = false
 
-
   // <editor-fold desc="Proxy configuration">
   /**
    * proxy scheme to use - optional - for non-http
