@@ -200,7 +200,7 @@ abstract class JMeterBaseTask : JavaExec() {
     jvmArgs(jmExt.jvmArgs.get())
     args(createRunArguments())
     if (maskOutput.isEmpty()) {
-      log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
+      log.debug("Running jmeter with jvmArgs: {} and cmdArgs: {}", jvmArgs, args)
     } else {
       var maskJvmArgs = jvmArgs.toString()
       var maskArgs = args.toString()
@@ -208,7 +208,7 @@ abstract class JMeterBaseTask : JavaExec() {
         maskJvmArgs = maskJvmArgs.replace(it, MASK)
         maskArgs = maskArgs.replace(it, MASK)
       }
-      log.lifecycle("Running jmeter with jvmArgs: {} and cmdArgs: {}", maskJvmArgs, maskArgs)
+      log.debug("Running jmeter with jvmArgs: {} and cmdArgs: {}", maskJvmArgs, maskArgs)
     }
     super.exec()
   }
