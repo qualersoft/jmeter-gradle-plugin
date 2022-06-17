@@ -14,10 +14,10 @@ object CopyResource {
   fun extractJarToDir(jarFile: JarFile, targetDir: File) {
     jarFile.entries().toList().forEach {
       val filename = it.name
-      log.info("Going to copy: {}", filename)
+      log.trace("Going to copy: {}", filename)
       val destFile = File(targetDir, filename)
       if (it.isDirectory) {
-        log.info("{} is directory -> creating it", filename)
+        log.trace("{} is directory -> creating it", filename)
         destFile.mkdirs()
       } else {
         copyStream(jarFile.getInputStream(it), destFile.outputStream())
