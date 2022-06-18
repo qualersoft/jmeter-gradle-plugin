@@ -126,7 +126,7 @@ class JMeterSetupFunctionalTest : JMeterPluginFunctionalTestBase() {
       { output1 should contain("(?m)^1 actionable task: 1 executed$".toRegex()) },
       { output2 should contain("(?m)^> Task :setupJMeter$".toRegex()) },
       { output2 should contain("(?m)^1 actionable task: 1 executed$".toRegex()) },
-      { jars shouldHaveSize 2} 
+      { jars shouldHaveSize 2 }
     )
   }
 
