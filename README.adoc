@@ -73,6 +73,11 @@ jmeter {
   globalPropertiesFile // <.>
   globalProperties // <.>
 
+  proxxScheme // <.>
+  proxyHost // <.>
+  proxyPort // <.>
+  nonProxyHosts // <.>
+
   logConfig // <.>
   logOutputFile // <.>
 
@@ -85,26 +90,30 @@ jmeter {
 ----
 [%collapsible]
 ====
-<1> Additional system property file(s).
-<2> Define additional system properties.
-<3> The jmeter property file to use.
-<4> Additional JMeter property file(s).
-<5> Define additional JMeter properties.
-<6> Path to a custom report-template folder used by report generator.
-<7> Path to a JMeter property file which will be sent to all servers.
-<8> Properties which will be sent to remote servers.
-<9> Custom log configuration file (currently log4j2) +
+<.> Additional system property file(s).
+<.> Define additional system properties.
+<.> The jmeter property file to use.
+<.> Additional JMeter property file(s).
+<.> Define additional JMeter properties.
+<.> Path to a custom report-template folder used by report generator.
+<.> Path to a JMeter property file which will be sent to all servers.
+<.> Properties which will be sent to remote servers.
+<.> Scheme of the proxy (e.g. for non-http).
+<.> Proxy server hostname or ip address.
+<.> Proxy server port.
+<.> Non-proxy hosts (e.g *.apache.org).
+<.> Custom log configuration file (currently log4j2) +
 Defaults to bundled configuration.
-<10> File where jmeter log will be written to. +
+<.> File where jmeter log will be written to. +
 Defaults to <buildDir>/logs/jmeter.log
-<11> Used to search for jmx files. +
+<.> Used to search for jmx files. +
 Defaults to src/test/jmeter
-<12> Directory to which the jtl-files will be written. +
+<.> Directory to which the jtl-files will be written. +
 Defaults to <buildDir>/test-results/jmeter
-<13> Root directory where to put the reports +
+<.> Root directory where to put the reports +
 Defaults to <buildDir>/reports/jmeter
-<14> [Optional] Specifies the maximum heap size the JVM process will start with.
-<15> [Optional] additional JVM arguments that will be passed to the jvm directly.
+<.> [Optional] Specifies the maximum heap size the JVM process will start with.
+<.> [Optional] additional JVM arguments that will be passed to the jvm directly.
 ====
 These configurations will be applied to all tasks (where appropriate) and can be overridden or extended on a per task base.
 
@@ -180,11 +189,11 @@ BUILD SUCCESSFUL in 15s
 1 actionable task: 1 executed
 ----
 
-👏 Congratulations, you run your first jmeter script with this plugin. +
+👏 Congratulations, you've run your first jmeter script with this plugin. +
 🎉 4 steps, that's it. Simple, wasn't it?
 
 === Generating a report
-After you successfully run your first jmeter script, you might want to have a report showing some nice carts and stats.
+After you've run your first jmeter script successfully, you might want to have a report showing some nice charts and stats.
 
 No problem, just:
 
@@ -324,7 +333,7 @@ By default, this plugin includes the following plugins (as they are also default
 [%collapsible, title=Info]
 ====
 At the current time, these plugins are hardwired and cannot be modified. +
-(Yeah, I know so much about flexibility... Mea culpa! 😉)
+(Yeah, I know, so much about flexibility... Mea culpa! 😉)
 ====
 
 === Adding support libraries

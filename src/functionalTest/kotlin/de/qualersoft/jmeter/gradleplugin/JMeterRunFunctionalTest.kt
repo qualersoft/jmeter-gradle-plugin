@@ -5,6 +5,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
@@ -40,6 +41,32 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
       { runShouldSucceed(result) },
       { resultFolder should exist() },
       { resultFolder.resolve("Test.jtl") should exist() }
+    )
+  }
+
+  @Test
+  fun `execute run task in mode other than debug must not log run args`() {
+    val runner = setupTest("default_build").withArguments("runTest", "--info")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    assertAll(
+      { runShouldSucceed(result) },
+      { result.output shouldNot contain(REGEX_ARGS_LOG_MSG) }
+    )
+  }
+
+  @Test
+  fun `execute run task in debug mode run args must be logged`() {
+    val runner = setupTest("default_build").withArguments("runTest", "--debug")
+    copyJmxToDefaultLocation()
+
+    val result = runner.build()
+
+    assertAll(
+      { runShouldSucceed(result) },
+      { result.output should contain(REGEX_ARGS_LOG_MSG) }
     )
   }
 
@@ -100,7 +127,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   @Test
   fun `set jmeter property by commandline`() {
     val runner = setupTest("default_build")
-      .withArguments("runTest", "--J=aKey01=aValue01", "--J=aKey02=aValue02")
+      .withArguments("runTest", "--J=aKey01=aValue01", "--J=aKey02=aValue02", "--debug")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -112,7 +139,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   @Test
   fun `set non existing additional jmeter property file by commandline should fail`() {
     val runner = setupTest("default_build")
-      .withArguments("runTest", "--addprop=ImNotThere.properties")
+      .withArguments("runTest", "--addprop=ImNotThere.properties", "--debug")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -138,7 +165,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   @Test
   fun `set sys property by commandline`() {
     val runner = setupTest("default_build")
-      .withArguments("runTest", "--sysProp=aKey01=aValue01", "--sysProp=aKey02=aValue02")
+      .withArguments("runTest", "--sysProp=aKey01=aValue01", "--sysProp=aKey02=aValue02", "--debug")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -150,7 +177,12 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   @Test
   fun `set non existing system property file by commandline should fail`() {
     val runner = setupTest("default_build")
-      .withArguments("runTest", "--sysPropFile=ImNotThere1.properties", "--sysPropFile=ImNotThere2.properties")
+      .withArguments(
+        "runTest",
+        "--sysPropFile=ImNotThere1.properties",
+        "--sysPropFile=ImNotThere2.properties",
+        "--debug"
+      )
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -165,9 +197,9 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   }
 
   @Test
-  fun `set global properties by commandline should fail`() {
+  fun `set global properties by commandline should succeed`() {
     val runner = setupTest("default_build")
-      .withArguments("runTest", "--G=aGlobalKey1=aGlobalValue1", "--G=aGlobalKey2=aGlobalValue2")
+      .withArguments("runTest", "--G=aGlobalKey1=aGlobalValue1", "--G=aGlobalKey2=aGlobalValue2", "--debug")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
@@ -190,7 +222,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
   }
 
   @Test
-  fun `no jmx files specified and no present should fail`() {
+  fun `no jmx file specified should fail`() {
     val runner = setupTest("noJmxFileGiven_build").withArguments("runTest")
 
     val result = runner.buildAndFail()
@@ -234,5 +266,84 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
       { report should exist() },
       { report.readText() should contain("<title>My own") }
     )
+  }
+
+  @Nested
+  inner class ProxySettings {
+
+    @Test
+    fun `scheme can be set through cli`() {
+      val result = defaultRunner("--E", "sftp", "--debug")
+        .build()
+
+      result.output shouldContain ", -E, sftp"
+    }
+
+    @Test
+    fun `proxy host can be set through cli`() {
+      val result = defaultRunner("--H", "localhost", "--debug")
+        .build()
+
+      result.output shouldContain ", -H, localhost"
+    }
+
+    @Test
+    fun `using non numerical proxy port should fail`() {
+      val port = "N0P0r7"
+      val result = defaultRunner("--PP", port)
+        .buildAndFail()
+
+      result.output shouldContain "Port must be a valid number! Got >$port<"
+    }
+
+    @Test
+    fun `port with valid format gets set`() {
+      val port = "42"
+      val result = defaultRunner("--PP", port, "--debug")
+        .build()
+
+      result.output shouldContain ", -P, $port,"
+    }
+
+    @Test
+    fun `setting one non proxy hosts through cli should work`() {
+      val result = defaultRunner("--N", "localhost", "--debug")
+        .build()
+
+      result.output shouldContain ", -N, localhost"
+    }
+
+    @Test
+    fun `setting multiple non proxy hosts through cli should work`() {
+      val result = defaultRunner("--N", "localhost", "--N", "example.com", "--debug")
+        .build()
+
+      result.output shouldContain ", -N, localhost|example.com"
+    }
+
+    @Test
+    fun `password must be masked in output`() {
+      val result = defaultRunner("--pwd", "IWillGetMasked", "--debug")
+        .build()
+
+      result.output shouldContain ", -a, ****,"
+    }
+
+    @Test
+    fun `username must be masked in output`() {
+      val result = defaultRunner("--u", "IWillGetMasked", "--debug")
+        .build()
+
+      result.output shouldContain ", -u, ****,"
+    }
+
+    private fun defaultRunner(vararg arguments: String) = setupTest("default_build")
+      .withArguments("runTest", *arguments).also {
+        copyJmxToDefaultLocation()
+      }
+  }
+
+  companion object {
+    val REGEX_ARGS_LOG_MSG = Regex("(?m)^.*Running jmeter with jvmArgs: .* and cmdArgs: .*$")
   }
 }

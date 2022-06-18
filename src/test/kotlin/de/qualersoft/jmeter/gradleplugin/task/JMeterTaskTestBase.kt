@@ -18,7 +18,7 @@ open class JMeterTaskTestBase {
     return ProjectBuilder.builder().build().also {
       project = it
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
-      extConfig(it.extensions.getByType(JMeterExtension::class.java))
+      extConfig(getExtension())
     }.tasks.register(T::class.simpleName!!, T::class.java, taskConfig)
   }
 
@@ -26,7 +26,9 @@ open class JMeterTaskTestBase {
     return ProjectBuilder.builder().build().also {
       project = it
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
-      config(it.extensions.getByType(JMeterExtension::class.java))
+      config(getExtension())
     }.tasks.register(T::class.simpleName!!, T::class.java)
   }
+
+  protected fun getExtension(): JMeterExtension = project.extensions.getByType(JMeterExtension::class.java)
 }

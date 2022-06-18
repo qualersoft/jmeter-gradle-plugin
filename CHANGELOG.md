@@ -16,6 +16,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+### Added
+- Added additional cli-arguments for proxy-settings (#40)
+
+### Fixed
+- Fixed security issue in plugin-output which can expose sensitive data (#43)
+
+### Changed
+- JMeterSetupTask now supports up-to-date check (#44)
+
+## [2.2.2]
 ### Changed
 - Aligned required java version with JMeter to Java8 (#36)
 

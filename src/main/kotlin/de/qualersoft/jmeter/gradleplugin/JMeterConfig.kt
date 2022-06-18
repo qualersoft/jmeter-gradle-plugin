@@ -7,6 +7,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 /**
  * Class to configure the jMeter tool.
@@ -29,6 +31,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Default: `org.apache.jmeter`
    */
+  @Input
   var group: String = "org.apache.jmeter"
 
   /**
@@ -37,6 +40,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Default: `ApacheJMeter`
    */
+  @Input
   var name: String = "ApacheJMeter"
 
   /**
@@ -49,6 +53,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to '5.4.1'
    */
+  @Input
   var version: String = "5.4.1"
 
   /**
@@ -56,6 +61,7 @@ class JMeterConfig(private val project: Project) {
    * for the main library.
    * Default: `null`
    */
+  @Internal
   var mainConfigureClosure: (ExternalModuleDependency.() -> Unit)? = null
 
   /**
@@ -63,6 +69,7 @@ class JMeterConfig(private val project: Project) {
    *
    * Defaults to `org.apache.jmeter.NewDriver`
    */
+  @Input
   val mainClass: Property<String> = objects.property(String::class.java)
     .convention("org.apache.jmeter.NewDriver")
   // </editor-fold>
@@ -101,7 +108,7 @@ class JMeterConfig(private val project: Project) {
   /**
    * Workaround for invalid bom reference in jmeter-module-descriptor.
    *
-   * Details see [https://bz.apache.org/bugzilla/show_bug.cgi?id=64465]
+   * Details see [Issue 64465](https://bz.apache.org/bugzilla/show_bug.cgi?id=64465)
    */
   fun applyBomWorkaround(dependency: Dependency): Dependency {
     if (dependency is ExternalModuleDependency) {
