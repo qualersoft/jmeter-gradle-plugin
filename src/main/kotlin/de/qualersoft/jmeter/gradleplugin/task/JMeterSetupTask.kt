@@ -12,6 +12,8 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.util.jar.JarFile
@@ -19,9 +21,12 @@ import java.util.jar.JarFile
 @CacheableTask
 open class JMeterSetupTask : DefaultTask() {
 
-  private val jmExt = project.jmeter()
+  @Nested
+  protected val jmTool = project.jmeter().tool
 
-  private val jmToolDir = project.buildDir.resolve("jmeter")
+  @OutputDirectory
+  protected val jmToolDir = project.buildDir.resolve("jmeter")
+
   private val jmBinDir = jmToolDir.resolve("bin")
   private val jmLibDir = jmToolDir.resolve("lib")
   private val jmExtDir = jmLibDir.resolve("ext")
@@ -52,7 +57,6 @@ open class JMeterSetupTask : DefaultTask() {
    * Gets the jmeter-runner library jar file.
    */
   private fun getJMeterLib(): File {
-    val jmTool = jmExt.tool
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
@@ -64,7 +68,6 @@ open class JMeterSetupTask : DefaultTask() {
    * Gets the jmeter-resource library jar file.
    */
   private fun getJMeterResourceLib(): File {
-    val jmTool = jmExt.tool
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
       .resolvedConfiguration.resolvedArtifacts
