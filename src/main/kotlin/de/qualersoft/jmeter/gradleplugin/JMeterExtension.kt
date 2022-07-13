@@ -173,7 +173,6 @@ open class JMeterExtension(private val project: Project) {
    */
   val jvmArgs = objects.listProperty<String>()
 
-
   /**
    * Creates task which starts the jMeter GUI.
    *
