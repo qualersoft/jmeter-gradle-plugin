@@ -94,7 +94,7 @@ jmeter {
   exitRemoteServers // <.>
 }
 ----
-[%collapsible%open]
+[%collapsible]
 ====
 <.> Additional system property file(s).
 <.> Define additional system properties.
