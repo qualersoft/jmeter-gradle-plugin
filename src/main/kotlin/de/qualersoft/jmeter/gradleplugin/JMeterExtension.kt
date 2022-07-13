@@ -119,10 +119,10 @@ open class JMeterExtension(private val project: Project) {
   )
   // </editor-fold>
 
-  //<editor-fold desc="Remoting properties">
+  // <editor-fold desc="Remoting properties">
   /**
    * Flag to execute test on configured remote servers.
-   * 
+   *
    * Defaults to `false`.
    */
   val enableRemoteExecution: Property<Boolean> = objects.property<Boolean>().value(false)
@@ -130,13 +130,12 @@ open class JMeterExtension(private val project: Project) {
   /**
    * Flag to exit remote servers at the end of the test.
    * Only effective iff [enableRemoteExecution] is `true`.
-   * 
+   *
    * Defaults to `false`.
    */
   val exitRemoteServers: Property<Boolean> = objects.property<Boolean>().value(false)
-  //</editor-fold>
+  // </editor-fold>
 
-  
   /**
    * Root directory used by tasks to resolve its jmxFile.
    *
