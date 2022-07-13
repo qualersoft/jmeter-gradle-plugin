@@ -156,6 +156,16 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   fun setPassword(pwd: String) {
     password.value(pwd)
   }
+
+  @Input
+  @Optional
+  val enableRemoteExecution = objectFactory.property<Boolean>()
+    .value(jmExt.enableRemoteExecution)
+
+  @Input
+  @Optional
+  val exitRemoteServers = objectFactory.property<Boolean>()
+    .value(jmExt.exitRemoteServers)
   // </editor-fold>
 
   override fun createRunArguments() = mutableListOf<String>().apply {
@@ -220,5 +230,20 @@ open class JMeterRunTask : JMeterExecBaseTask() {
     }
 
     addDelete(this)
+
+    addRemoteArgs(this)
+  }
+
+  private fun addRemoteArgs(args: MutableList<String>) {
+    if (enableRemoteExecution.get()) {
+      args.add("-r")
+      if (exitRemoteServers.get()) {
+        args.add("-X")
+      }
+    } else if (exitRemoteServers.get()) {
+      logger.warn(
+        "The Flag `exitRemoteServer` is enabled, but `enableRemoteExecution` isn't! Check your configuration."
+      )
+    }
   }
 }

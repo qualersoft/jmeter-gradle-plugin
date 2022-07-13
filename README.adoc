@@ -9,9 +9,12 @@ endif::[]
 ifndef::env-github[]
 :icons: font
 endif::[]
-:jm_tm:     https://jmeter.apache.org/[JMeter(TM),window=_blank]
-:jm_cli:    https://jmeter.apache.org/usermanual/get-started.html#override
-:gh_rp:     https://github.com/qualersoft/jmeter-gradle-plugin
+:jm_base:       https://jmeter.apache.org
+:jm_tm:         {jm_base}/[JMeter(TM),window=_blank]
+:jm_doc_base:   {jm_base}/usermanual
+:jm_remoteing:  {jm_doc_base}/remote-test.html
+:jm_cli:        {jm_doc_base}/get-started.html#override
+:gh_rp:         https://github.com/qualersoft/jmeter-gradle-plugin
 :toc: preamble
 
 [cols="1,~", frame=none, grid=none]
@@ -86,9 +89,12 @@ jmeter {
   reportDir // <.>
   maxHeap // <.>
   jvmArgs //<.>
+
+  enableRemoteExecution // <.>
+  exitRemoteServers // <.>
 }
 ----
-[%collapsible]
+[%collapsible%open]
 ====
 <.> Additional system property file(s).
 <.> Define additional system properties.
@@ -114,6 +120,10 @@ Defaults to <buildDir>/test-results/jmeter
 Defaults to <buildDir>/reports/jmeter
 <.> [Optional] Specifies the maximum heap size the JVM process will start with.
 <.> [Optional] additional JVM arguments that will be passed to the jvm directly.
+<.> [Optional] tells {jm_tm} to run the tests on the configured remote-servers (see {jm_remoteing}[remoting]) +
+Defaults to `false`.
+<.> [Optional] Flag to exit remote servers at the end of the test. Only effective iff `enableRemoteExecution` is `true`. +
+Defaults to `false`.
 ====
 These configurations will be applied to all tasks (where appropriate) and can be overridden or extended on a per task base.
 
