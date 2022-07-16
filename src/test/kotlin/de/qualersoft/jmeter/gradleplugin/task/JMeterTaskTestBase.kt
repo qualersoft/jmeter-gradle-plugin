@@ -12,8 +12,8 @@ open class JMeterTaskTestBase {
   lateinit var project: Project
 
   protected inline fun <reified T : Task> createTaskWithConfig(
-    extConfig: JMeterExtension.() -> Unit,
-    noinline taskConfig: T.() -> Unit
+    extConfig: JMeterExtension.() -> Unit = {},
+    noinline taskConfig: T.() -> Unit = {}
   ): TaskProvider<T> {
     return ProjectBuilder.builder().build().also {
       project = it
