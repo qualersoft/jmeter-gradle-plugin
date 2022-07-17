@@ -166,8 +166,10 @@ abstract class JMeterBaseTask : JavaExec() {
   private val setupTask: TaskProvider<JMeterSetupTask> =
     project.tasks.named(JMETER_SETUP_TASK_NAME, JMeterSetupTask::class.java)
 
-  private val jmToolJar: RegularFileProperty = objectFactory.fileProperty()
-    .value(setupTask.map { it.jmJar.get() })
+  @InputFile
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  protected val jmToolJar: RegularFileProperty = objectFactory.fileProperty()
+    .value(setupTask.get().jmJar)
 
   @Internal
   protected val maskOutput = mutableListOf<String>()
@@ -175,7 +177,6 @@ abstract class JMeterBaseTask : JavaExec() {
   init {
     group = "jmeter"
     mainClass.value(jmExt.tool.mainClass)
-    super.dependsOn(setupTask)
   }
 
   private fun resolveJmxFile() = jmxFile.map {
