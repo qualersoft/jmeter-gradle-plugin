@@ -11,9 +11,9 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.util.jar.JarFile
@@ -32,8 +32,12 @@ open class JMeterSetupTask : DefaultTask() {
   private val jmExtDir = jmLibDir.resolve("ext")
   private val jmJUnitDir = jmLibDir.resolve("junit")
 
-  @get:Internal
-  internal val jmJar: RegularFileProperty = project.objects.fileProperty()
+  private val sourceJmJar by lazy { getJMeterLib() }
+
+  @get:OutputFile
+  internal val jmJar: RegularFileProperty = project.objects.fileProperty().value {
+    jmBinDir.resolve("${jmTool.name}-${jmTool.version}.jar")
+  }
 
   init {
     group = "jmeter"
@@ -44,7 +48,7 @@ open class JMeterSetupTask : DefaultTask() {
     prepareDirectories()
 
     // copy jmeter-runner to bin dir
-    jmJar.set(getJMeterLib().copyToDir(jmBinDir))
+    sourceJmJar.copyTo(jmJar.asFile.get(), true)
 
     val resourceJar = getJMeterResourceLib()
     CopyResource.extractJarToDir(JarFile(resourceJar), jmToolDir)

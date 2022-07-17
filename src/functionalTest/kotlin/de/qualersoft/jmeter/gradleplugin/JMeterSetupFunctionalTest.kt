@@ -1,10 +1,13 @@
 package de.qualersoft.jmeter.gradleplugin
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.io.File
@@ -93,49 +96,47 @@ class JMeterSetupFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   fun `run same setup tasks twice must cache second run`() {
-    val runner = setupTest("twoSetupTasks").withArguments("setupJMeter")
+    val runner = setupTest("twoSetupTasks").withArguments(SETUP_TASK_NAME)
     var result = runner.build()
-    val output1 = result.output
+    val task1 = result.task(":$SETUP_TASK_NAME")
 
-    result = runner.withArguments("setupJMeter").build()
-    val output2 = result.output
+    result = runner.withArguments(SETUP_TASK_NAME).build()
+    val task2 = result.task(":$SETUP_TASK_NAME")
 
     assertAll(
-      { output1 should contain("(?m)^> Task :setupJMeter$".toRegex()) },
-      { output1 should contain("(?m)^1 actionable task: 1 executed$".toRegex()) },
-      { output2 should contain("(?m)^> Task :setupJMeter UP-TO-DATE$".toRegex()) },
-      { output2 should contain("(?m)^1 actionable task: 1 up-to-date$".toRegex()) }
+      { withClue("Outcome first run") { task1?.outcome shouldBe TaskOutcome.SUCCESS } },
+      { withClue("Outcome second run") { task2?.outcome shouldBe TaskOutcome.UP_TO_DATE } }
     )
   }
 
   @Test
   fun `run same setup tasks twice with modification of tool must not cache second call`() {
-    val runner = setupTest("withToolVersionFromCli").withArguments("setupJMeter")
+    val runner = setupTest("withToolVersionFromCli").withArguments(SETUP_TASK_NAME)
     var result = runner.build()
-    val output1 = result.output
+    val task1 = result.task(":$SETUP_TASK_NAME")
 
-    result = runner.withArguments("setupJMeter", "-PtoolVersion=5.4.2").build()
-    val output2 = result.output
+    result = runner.withArguments(SETUP_TASK_NAME, "-PtoolVersion=5.4.2").build()
+    val task2 = result.task(":$SETUP_TASK_NAME")
     // atm we do not clean
     val jars = testProjectDir.root.resolve("build/jmeter/bin").listFiles { _, name ->
       name.startsWith("ApacheJMeter")
     }!!
 
     assertAll(
-      { output1 should contain("(?m)^> Task :setupJMeter$".toRegex()) },
-      { output1 should contain("(?m)^1 actionable task: 1 executed$".toRegex()) },
-      { output2 should contain("(?m)^> Task :setupJMeter$".toRegex()) },
-      { output2 should contain("(?m)^1 actionable task: 1 executed$".toRegex()) },
+      { withClue("Outcome first run") { task1?.outcome shouldBe TaskOutcome.SUCCESS } },
+      { withClue("Outcome second run") { task2?.outcome shouldBe TaskOutcome.SUCCESS } },
       { jars shouldHaveSize 2 }
     )
   }
 
   /**
-   * Defaults defined in [JMeterConfig]
+   * Defaults defined in [JMeterConfig][de.qualersoft.jmeter.gradleplugin.JMeterConfig]
    */
   companion object {
     const val DEFAULT_GROUP = "org.apache.jmeter"
     const val DEFAULT_NAME = "ApacheJMeter"
     const val DEFAULT_VERSION = "5.4.1"
+
+    const val SETUP_TASK_NAME = "setupJMeter"
   }
 }

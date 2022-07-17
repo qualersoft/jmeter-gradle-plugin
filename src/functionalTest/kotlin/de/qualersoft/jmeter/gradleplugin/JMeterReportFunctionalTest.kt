@@ -17,13 +17,10 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
     val runner = setupTest("default_build").withArguments("runTest", "reportTest")
     copyJmxToDefaultLocation()
 
-    val result = runner.build()
+    runner.build()
 
     val expectedReportFile = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
-    assertAll(
-      { runShouldSucceed(result) },
-      { expectedReportFile should exist() }
-    )
+    expectedReportFile should exist()
   }
 
   @Test
@@ -33,11 +30,10 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
     val reportDir = runner.projectDir.resolve("custom-template")
     copyZipResourceTo("report-template.zip", reportDir)
 
-    val result = runner.build()
+    runner.build()
 
     val expectedReportFile = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
     assertAll(
-      { runShouldSucceed(result) },
       { expectedReportFile should exist() },
       { expectedReportFile.readText() should contain("<title>My own") }
     )
@@ -50,11 +46,10 @@ class JMeterReportFunctionalTest : JMeterPluginFunctionalTestBase() {
     val reportDir = runner.projectDir.resolve("custom-template")
     copyZipResourceTo("report-template.zip", reportDir)
 
-    val result = runner.build()
+    runner.build()
 
     val expectedReportFile = runner.projectDir.resolve("build/reports/jmeter/Test/index.html")
     assertAll(
-      { runShouldSucceed(result) },
       { expectedReportFile should exist() },
       { expectedReportFile.readText() should contain("<title>My own") }
     )
