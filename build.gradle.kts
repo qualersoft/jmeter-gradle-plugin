@@ -16,7 +16,7 @@ plugins {
 
   // publishing
   `maven-publish`
-  id("com.gradle.plugin-publish") version "0.15.0"
+  id("com.gradle.plugin-publish") version "1.0.0"
   id("org.jetbrains.changelog") version "1.3.0"
 }
 
