@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/" # Location to start scanning
+    schedule:
+      interval: "daily"
