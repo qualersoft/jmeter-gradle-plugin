@@ -8,7 +8,7 @@ plugins {
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
-  id("io.gitlab.arturbosch.detekt") version "1.18.0"
+  id("io.gitlab.arturbosch.detekt") version "1.21.0"
 
   // documentation
   id("org.jetbrains.dokka") version "1.7.10"
