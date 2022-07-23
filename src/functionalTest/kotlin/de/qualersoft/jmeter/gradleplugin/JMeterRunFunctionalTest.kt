@@ -346,9 +346,9 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     }
 
     private fun defaultRunner(vararg arguments: String) = setupTest("default_build")
-      .withArguments("runTest", *arguments).also {
-        copyJmxToDefaultLocation()
-      }
+      .withArguments("runTest", *arguments)
+      .also { copyJmxToDefaultLocation() }
+
   }
 
   companion object {

@@ -22,8 +22,16 @@ jobs:
           save-local-build-cache: false
           arguments: detekt
 
+      - name: "Upload sarif report"
+        uses: github/codeql-action/upload-sarif@v2
+        if: success() || failure()
+        with:
+          sarif_file: build/reports/detekt/detekt.sarif
+          category: detekt
+
       - name: "Upload detekt report"
         uses: actions/upload-artifact@v2
+        if: success() || failure()
         with:
           name: detektReport
           path: build/reports/detekt

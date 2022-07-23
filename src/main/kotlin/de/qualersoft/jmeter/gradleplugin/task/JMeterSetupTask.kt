@@ -63,7 +63,8 @@ open class JMeterSetupTask : DefaultTask() {
   private fun getJMeterLib(): File {
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
-      .resolvedConfiguration.resolvedArtifacts
+      .resolvedConfiguration
+      .resolvedArtifacts
 
     return findArtifactMatch(artifacts, jmTool.group, jmTool.name)
   }
@@ -74,7 +75,8 @@ open class JMeterSetupTask : DefaultTask() {
   private fun getJMeterResourceLib(): File {
     val artifacts: Set<ResolvedArtifact> = project.configurations
       .getByName(JMETER_RUNNER)
-      .resolvedConfiguration.resolvedArtifacts
+      .resolvedConfiguration
+      .resolvedArtifacts
 
     val toolConfNot = jmTool.createToolConfigDependencyNotion()
     val toolConfName = toolConfNot["name"]!!
@@ -95,26 +97,22 @@ open class JMeterSetupTask : DefaultTask() {
   private fun resolveAndCopyExtensionLibs() {
     val resolvedExtensions = mutableListOf<ResolvedDependency>()
     project.configurations.getByName(JMETER_PLUGIN_DEPENDENCY)
-      .resolvedConfiguration.firstLevelModuleDependencies.flatMap {
+      .resolvedConfiguration
+      .firstLevelModuleDependencies
+      .flatMap {
         resolvedExtensions.add(it)
         it.moduleArtifacts
-      }.map {
-        it.file
-      }.forEach {
-        it.copyToDir(jmExtDir)
       }
-    resolvedExtensions.flatMap {
-      it.children
-    }.filterNot {
-      // only take dependencies that were not already copied earlier
-      resolvedExtensions.contains(it)
-    }.flatMap {
-      it.allModuleArtifacts
-    }.map {
-      it.file
-    }.forEach {
-      it.copyToDir(jmLibDir)
-    }
+      .map { it.file }
+      .forEach { it.copyToDir(jmExtDir) }
+
+    resolvedExtensions
+      .flatMap { it.children }
+      // only take dependencies that were not already copied earlier 
+      .filterNot { resolvedExtensions.contains(it) }
+      .flatMap { it.allModuleArtifacts }
+      .map { it.file }
+      .forEach { it.copyToDir(jmLibDir) }
   }
 
   /**
@@ -122,11 +120,10 @@ open class JMeterSetupTask : DefaultTask() {
    */
   private fun resolveAndCopyToolLibs() {
     project.configurations.getByName(JMETER_LIB_DEPENDENCY)
-      .resolvedConfiguration.resolvedArtifacts.map {
-        it.file
-      }.forEach {
-        it.copyToDir(jmLibDir)
-      }
+      .resolvedConfiguration
+      .resolvedArtifacts
+      .map { it.file }
+      .forEach { it.copyToDir(jmLibDir) }
   }
 
   /**

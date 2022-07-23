@@ -1,4 +1,6 @@
 import de.qualersoft.parseSemVer
+import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   // implementation
@@ -65,15 +67,8 @@ jacoco {
 
 detekt {
   allRules = false
-  buildUponDefaultConfig = true
-  config = files("$projectDir/detekt.yml")
-  source = files("src/main/kotlin")
-
-  reports {
-    html.enabled = true
-    xml.enabled = true
-    txt.enabled = false
-  }
+  source = files("src")
+  basePath = project.projectDir.path
 }
 
 if (project.version.toString().endsWith("-SNAPSHOT", true)) {
@@ -96,7 +91,7 @@ changelog {
 
 tasks {
 
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+  withType<KotlinCompile>().configureEach {
     kotlinOptions {
       jvmTarget = javaVersion.toString()
     }
@@ -106,9 +101,16 @@ tasks {
     enableStricterValidation.set(true)
   }
 
-  this.detekt {
+  withType<Detekt>().configureEach {
     // Target version of the generated JVM bytecode. It is used for type resolution.
-    this.jvmTarget = javaVersion.toString()
+    jvmTarget = javaVersion.toString()
+    reports {
+      html.required.set(true)
+      xml.required.set(true)
+      txt.required.set(false)
+      md.required.set(false)
+      sarif.required.set(true)
+    }
   }
 
   // Setup functional test sets
