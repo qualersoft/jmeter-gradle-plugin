@@ -73,6 +73,7 @@ jacoco {
 detekt {
   allRules = false
   source = files("src")
+  config = files("detekt.yml")
   basePath = project.projectDir.path
 }
 
