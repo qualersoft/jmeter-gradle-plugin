@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   // implementation
-  `java-gradle-plugin`
   kotlin("jvm") version "1.6.10"
 
   // quality
@@ -17,8 +16,8 @@ plugins {
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
-  `maven-publish`
-  id("com.gradle.plugin-publish") version "0.15.0"
+  signing
+  id("com.gradle.plugin-publish") version "1.0.0"
   id("org.jetbrains.changelog") version "1.3.0"
 }
 
@@ -48,6 +47,12 @@ dependencies {
 val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest")
 configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
 
+pluginBundle {
+  website = "https://github.com/qualersoft/jmeter-gradle-plugin"
+  vcsUrl = "https://github.com/qualersoft/jmeter-gradle-plugin"
+  tags = listOf("jmeter", "test", "performance")
+}
+
 gradlePlugin {
   // Define the plugin
   plugins.create("jmeter") {
@@ -58,12 +63,6 @@ gradlePlugin {
     description = "Plugin to execute JMeter tests."
   }
   testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
-}
-
-pluginBundle {
-  website = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  vcsUrl = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  tags = listOf("jmeter", "test", "performance")
 }
 
 jacoco {
@@ -84,8 +83,6 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
 val javaVersion = JavaVersion.VERSION_1_8
 java {
   targetCompatibility = javaVersion
-  withSourcesJar()
-  withJavadocJar()
 }
 
 // Configure gradle-changelog-plugin plugin.
@@ -179,6 +176,12 @@ publishing {
       }
     }
   }
+}
+
+signing {
+  val signingKey: String? by project
+  val signingPassword: String? by project
+  useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
 val KINDS = listOf("major", "minor", "patch", "snapshot")
