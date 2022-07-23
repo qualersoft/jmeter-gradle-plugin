@@ -1,6 +1,7 @@
 import de.qualersoft.parseSemVer
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
@@ -10,6 +11,7 @@ plugins {
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
   id("io.gitlab.arturbosch.detekt") version "1.21.0"
+  id("org.owasp.dependencycheck") version "7.1.1"
 
   // documentation
   id("org.jetbrains.dokka") version "1.7.10"
@@ -74,6 +76,14 @@ detekt {
   source = files("src")
   config = files("detekt.yml")
   basePath = project.projectDir.path
+}
+
+dependencyCheck {
+  suppressionFile = file("config/dependencyCheck/suppressions.xml").path
+  formats = listOf(
+    Format.HTML,
+    Format.SARIF
+  )
 }
 
 if (project.version.toString().endsWith("-SNAPSHOT", true)) {
