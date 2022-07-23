@@ -1,6 +1,8 @@
 import de.qualersoft.parseSemVer
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.owasp.dependencycheck.gradle.extension.AnalyzerExtension
+import org.owasp.dependencycheck.gradle.extension.RetireJSExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
@@ -81,8 +83,15 @@ detekt {
 dependencyCheck {
   suppressionFile = file("config/dependencyCheck/suppressions.xml").path
   formats = listOf(
-    Format.HTML, Format.SARIF
+    Format.HTML,
+    Format.SARIF
   )
+  analyzers(closureOf<AnalyzerExtension> {
+    assemblyEnabled = false // requires 'dotnet' executable which is not present everywhere
+    retirejs(closureOf<RetireJSExtension> {
+      enabled = false // because there seams to be an issue with RetireJS
+    })
+  })
 }
 
 if (project.version.toString().endsWith("-SNAPSHOT", true)) {
