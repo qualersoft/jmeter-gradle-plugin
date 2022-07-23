@@ -37,6 +37,11 @@ dependencies {
   testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.3.2")
 
   testRuntimeOnly(kotlin("script-runtime"))
+
+  // quality
+  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.21.0") {
+    because("We also want to check formatting issues.")
+  }
 }
 
 // Add a source set for the functional test suite

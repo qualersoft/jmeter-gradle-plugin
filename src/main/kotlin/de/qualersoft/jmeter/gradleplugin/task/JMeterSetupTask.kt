@@ -108,7 +108,7 @@ open class JMeterSetupTask : DefaultTask() {
 
     resolvedExtensions
       .flatMap { it.children }
-      // only take dependencies that were not already copied earlier 
+      // only take dependencies that were not already copied earlier
       .filterNot { resolvedExtensions.contains(it) }
       .flatMap { it.allModuleArtifacts }
       .map { it.file }
