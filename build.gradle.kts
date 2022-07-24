@@ -83,7 +83,8 @@ detekt {
 dependencyCheck {
   suppressionFile = file("config/dependencyCheck/suppressions.xml").path
   formats = listOf(
-    Format.HTML,Format.SARIF
+    Format.HTML,
+    Format.SARIF
   )
   analyzers(closureOf<AnalyzerExtension> {
     assemblyEnabled = false // requires 'dotnet' executable which is not present everywhere
