@@ -101,5 +101,5 @@ class JMeterPlugin : Plugin<Project> {
 /**
  * Main
  */
-internal fun Project.jmeter(): JMeterExtension = extensions.getByName(EXTENSION_NAME) as? JMeterExtension
-  ?: throw IllegalStateException("$EXTENSION_NAME is not of the correct type")
+internal fun Project.jmeter(): JMeterExtension = checkNotNull(extensions.getByName(EXTENSION_NAME) as? JMeterExtension
+) { "$EXTENSION_NAME is not of the correct type" }

@@ -87,6 +87,6 @@ abstract class JMeterExecBaseTask : JMeterBaseTask() {
   }
 
   companion object {
-    private const val REPORT_TEMPLATE_DIR_KEY="jmeter.reportgenerator.exporter.html.property.template_dir"
+    private const val REPORT_TEMPLATE_DIR_KEY = "jmeter.reportgenerator.exporter.html.property.template_dir"
   }
 }

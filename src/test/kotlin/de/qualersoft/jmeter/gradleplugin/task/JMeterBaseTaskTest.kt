@@ -23,7 +23,7 @@ import java.io.File
 
 class JMeterBaseTaskTest : JMeterTaskTestBase() {
 
-  //<editor-fold desc="Sys-prop-file">
+  // <editor-fold desc="Sys-prop-file">
   @Test
   fun systemPropertyFileDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> {}.get()
@@ -48,9 +48,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
     val result = task.createRunArguments()
     result shouldHave entryEndsWith("sysPropsForArgs.properties")
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Sys prop key value">
+  // <editor-fold desc="Sys prop key value">
   @Test
   fun systemPropertyDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> {}.get()
@@ -107,9 +107,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
       { result should contain("-DbKey2=bValue2") }
     )
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Main property file">
+  // <editor-fold desc="Main property file">
   @Test
   fun mainPropertyFileDefaultsToUnset() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -135,9 +135,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
     val result = task.createRunArguments()
     result shouldHave entryEndsWith("otherMain.properties")
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Additional prop files">
+  // <editor-fold desc="Additional prop files">
   @Test
   fun additionalPropertyFilesDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -193,9 +193,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
       { result shouldHave entryEndsWith("Extension.file") }
     )
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="jmeter Properties">
+  // <editor-fold desc="jmeter Properties">
   @Test
   fun jmeterPropertiesDefaultsToEmpty() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -239,9 +239,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
     val result = task.createRunArguments()
     result should contain("-JargKey=argVal")
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="log config">
+  // <editor-fold desc="log config">
   @Test
   fun noLogConfigByDefault() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -264,9 +264,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
       { args shouldHave matchingEntry(".*myCustomLogConf.xml".toRegex()) }
     )
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="logOutputFile">
+  // <editor-fold desc="logOutputFile">
   @Test
   fun logOutputHasDefault() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -316,9 +316,9 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
     val result = task.createRunArguments()
     withClue("logOutput flag") { result shouldNot contain("-j") }
   }
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="JMX-file">
+  // <editor-fold desc="JMX-file">
   @Test
   fun noDefaultJmxFile() {
     val task = createTask<JMeterBaseTask> { }.get()
@@ -354,7 +354,7 @@ class JMeterBaseTaskTest : JMeterTaskTestBase() {
       { task.sourceFile.get().asFile.absolutePath shouldNot match(".*src[/\\\\]test[/\\\\]jmeter".toRegex()) }
     )
   }
-  //</editor-fold>
+  // </editor-fold>
 
   @Test
   fun taskWithNoConfigShouldInheritDefaultConfig() {
