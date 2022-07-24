@@ -34,10 +34,6 @@ open class JMeterPluginFunctionalTestBase {
     return createRunner(debug)
   }
 
-  protected fun runShouldSucceed(result: BuildResult) {
-    result.output shouldContain "BUILD SUCCESSFUL"
-  }
-
   protected fun runShouldFail(result: BuildResult, reason: String = "") {
     result.output shouldContain "FAILURE: $reason"
   }
@@ -57,18 +53,6 @@ open class JMeterPluginFunctionalTestBase {
     val destDir = testProjectDir.newFolder("./src/test/jmeter")
     destDir.mkdirs()
     val resource = File(javaClass.classLoader.getResource(srcJmx)!!.file)
-    val destFile = destDir.resolve(resource.name)
-    resource.copyTo(destFile)
-  }
-
-  /**
-   * Copies a result-file (*.jtl) from `resource` to the default location.
-   * @param source The path to the resource file.
-   */
-  fun copyResultToDefaultLocation(source: String) {
-    val destDir = testProjectDir.newFolder("./build/test-results/jmeter")
-    destDir.mkdirs()
-    val resource = File(javaClass.classLoader.getResource(source)!!.file)
     val destFile = destDir.resolve(resource.name)
     resource.copyTo(destFile)
   }

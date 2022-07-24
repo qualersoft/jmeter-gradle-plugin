@@ -4,7 +4,9 @@ import de.qualersoft.jmeter.gradleplugin.JMeterExtension
 import de.qualersoft.jmeter.gradleplugin.listProperty
 import de.qualersoft.jmeter.gradleplugin.property
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
@@ -21,6 +23,10 @@ import org.gradle.work.DisableCachingByDefault
 @Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Would love to execute jmeter tests more than once;)")
 open class JMeterRunTask : JMeterExecBaseTask() {
+
+  init {
+    outputs.upToDateWhen { false }
+  }
 
   /**
    * Path to a JMeter property file which will be sent to all remote server.
@@ -77,7 +83,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
    */
   @Input
   @Optional
-  val proxyScheme = objectFactory.property<String>()
+  val proxyScheme: Property<String> = objectFactory.property<String>()
     .value(jmExt.proxyScheme)
 
   @Option(
@@ -95,7 +101,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
    */
   @Input
   @Optional
-  val proxyHost = objectFactory.property<String>()
+  val proxyHost: Property<String> = objectFactory.property<String>()
     .value(jmExt.proxyHost)
 
   @Option(
@@ -111,7 +117,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
    */
   @Input
   @Optional
-  val proxyPort = objectFactory.property<Int>()
+  val proxyPort: Property<Int> = objectFactory.property<Int>()
     .value(jmExt.proxyPort)
 
   @Option(option = "PP", description = "proxy server port")
@@ -126,7 +132,7 @@ open class JMeterRunTask : JMeterExecBaseTask() {
    */
   @Input
   @Optional
-  val nonProxyHosts = objectFactory.listProperty<String>()
+  val nonProxyHosts: ListProperty<String> = objectFactory.listProperty<String>()
     .value(jmExt.nonProxyHosts)
 
   @Option(
@@ -156,6 +162,16 @@ open class JMeterRunTask : JMeterExecBaseTask() {
   fun setPassword(pwd: String) {
     password.value(pwd)
   }
+
+  @Input
+  @Optional
+  val enableRemoteExecution = objectFactory.property<Boolean>()
+    .value(jmExt.enableRemoteExecution)
+
+  @Input
+  @Optional
+  val exitRemoteServers = objectFactory.property<Boolean>()
+    .value(jmExt.exitRemoteServers)
   // </editor-fold>
 
   override fun createRunArguments() = mutableListOf<String>().apply {
@@ -220,5 +236,20 @@ open class JMeterRunTask : JMeterExecBaseTask() {
     }
 
     addDelete(this)
+
+    addRemoteArgs(this)
+  }
+
+  private fun addRemoteArgs(args: MutableList<String>) {
+    if (enableRemoteExecution.get()) {
+      args.add("-r")
+      if (exitRemoteServers.get()) {
+        args.add("-X")
+      }
+    } else if (exitRemoteServers.get()) {
+      logger.warn(
+        "The Flag `exitRemoteServer` is enabled, but `enableRemoteExecution` isn't! Check your configuration."
+      )
+    }
   }
 }

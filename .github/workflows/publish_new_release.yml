@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true #only merged pull requests must trigger this job
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.0.2
 
       - name: Extract version from branch name (for release branches)
         if: startsWith(github.event.pull_request.head.ref, 'release/')
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: release
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.0.2
         with:
           ref: main
 
@@ -64,6 +64,8 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MVN_CNTRL_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MVN_CNTRL_SECRET_KEY_PASS }}
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
@@ -74,6 +76,8 @@ jobs:
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MVN_CNTRL_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MVN_CNTRL_SECRET_KEY_PASS }}
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false

@@ -1,10 +1,13 @@
 package de.qualersoft.jmeter.gradleplugin
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.file.exist
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -34,11 +37,10 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val runner = setupTest("default_build").withArguments("runTest")
     copyJmxToDefaultLocation()
 
-    val result = runner.build()
+    runner.build()
 
     val resultFolder = runner.projectDir.resolve("build/test-results/jmeter")
     assertAll(
-      { runShouldSucceed(result) },
       { resultFolder should exist() },
       { resultFolder.resolve("Test.jtl") should exist() }
     )
@@ -51,10 +53,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val result = runner.build()
 
-    assertAll(
-      { runShouldSucceed(result) },
-      { result.output shouldNot contain(REGEX_ARGS_LOG_MSG) }
-    )
+    result.output shouldNot contain(REGEX_ARGS_LOG_MSG)
   }
 
   @Test
@@ -64,10 +63,7 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
     val result = runner.build()
 
-    assertAll(
-      { runShouldSucceed(result) },
-      { result.output should contain(REGEX_ARGS_LOG_MSG) }
-    )
+    result.output should contain(REGEX_ARGS_LOG_MSG)
   }
 
   @Test
@@ -75,11 +71,10 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val runner = setupTest("noJmxFileGiven_build").withArguments("runTest", "--test=Test.jmx")
     copyJmxToDefaultLocation()
 
-    val result = runner.build()
+    runner.build()
 
     val resultFolder = runner.projectDir.resolve("jmeter-results")
     assertAll(
-      { runShouldSucceed(result) },
       { resultFolder should exist() },
       { resultFolder.resolve("Test.jtl") should exist() }
     )
@@ -90,12 +85,11 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     val runner = setupTest("useExtension_build").withArguments("runTest")
     copyJmxToDefaultLocation()
 
-    val result = runner.build()
+    runner.build()
 
     val resultFolder = runner.projectDir.resolve("jmeter-results")
     val defaultResultFolder = runner.projectDir.resolve("build/test-results/jmeter")
     assertAll(
-      { runShouldSucceed(result) },
       { resultFolder should exist() },
       { resultFolder.resolve("Test.jtl") should exist() },
       { defaultResultFolder shouldNot exist() }
@@ -268,6 +262,20 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     )
   }
 
+  @Test
+  fun `execute jmeter twice without clean should succeed and setup should run only once`() {
+    val runner = setupTest("default_build").withArguments("runTest")
+    copyJmxToDefaultLocation()
+    val res1 = runner.build()
+    val res2 = runner.build()
+    assertAll(
+      { withClue("setupJMeter run 1") { res1.task(":setupJMeter")?.outcome shouldBe TaskOutcome.SUCCESS } },
+      { withClue("runTest run 1") { res1.task(":runTest")?.outcome shouldBe TaskOutcome.SUCCESS } },
+      { withClue("setupJMeter run 2") { res2.task(":setupJMeter")?.outcome shouldBe TaskOutcome.UP_TO_DATE } },
+      { withClue("runTest run 2") { res2.task(":runTest")?.outcome shouldBe TaskOutcome.SUCCESS } }
+    )
+  }
+
   @Nested
   inner class ProxySettings {
 
@@ -338,9 +346,8 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
     }
 
     private fun defaultRunner(vararg arguments: String) = setupTest("default_build")
-      .withArguments("runTest", *arguments).also {
-        copyJmxToDefaultLocation()
-      }
+      .withArguments("runTest", *arguments)
+      .also { copyJmxToDefaultLocation() }
   }
 
   companion object {

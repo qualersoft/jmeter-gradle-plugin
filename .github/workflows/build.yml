@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v1
@@ -22,8 +22,16 @@ jobs:
           save-local-build-cache: false
           arguments: detekt
 
+      - name: "Upload sarif report"
+        uses: github/codeql-action/upload-sarif@v2
+        if: success() || failure()
+        with:
+          sarif_file: build/reports/detekt/detekt.sarif
+          category: detekt
+
       - name: "Upload detekt report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.0.0
+        if: success() || failure()
         with:
           name: detektReport
           path: build/reports/detekt
@@ -33,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Fossa analyze"
         uses: fossas/fossa-action@v1
@@ -51,7 +59,7 @@ jobs:
     name: "Build artifact"
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v1
@@ -64,7 +72,7 @@ jobs:
     needs: compile
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Validate plugin"
         uses: burrunan/gradle-cache-action@v1
@@ -77,7 +85,7 @@ jobs:
     needs: compile
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Unit test coverage cache"
         uses: actions/cache@v2
@@ -102,7 +110,7 @@ jobs:
           files: build/test-results/**/*.xml
 
       - name: "Upload unit test report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.0.0
         if: always()
         with:
           name: unitTestReport
@@ -113,7 +121,7 @@ jobs:
     needs: compile
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Functional test coverage cache"
         uses: actions/cache@v2
@@ -136,7 +144,7 @@ jobs:
           files: build/test-results/functionalTest/*.xml
 
       - name: "Upload functional test report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.0.0
         if: always()
         with:
          name: functionalTestReport
@@ -149,7 +157,7 @@ jobs:
       - functionalTest
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Load unit test coverage cache"
         uses: actions/cache@v2
@@ -171,7 +179,7 @@ jobs:
           arguments: jacocoTestReport
 
       - name: "Publish Report"
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3.0.0
 
   publishSnapshot:
     runs-on: ubuntu-latest
@@ -181,7 +189,7 @@ jobs:
       - licenceCheck
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: "Load compile cache"
         uses: actions/cache@v2
@@ -189,11 +197,13 @@ jobs:
           path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
-      - name: "Publish snapshot"
+      - name: "Publish snapshot to github"
         uses: burrunan/gradle-cache-action@v1
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ github.token }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MVN_CNTRL_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MVN_CNTRL_SECRET_KEY_PASS }}
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false

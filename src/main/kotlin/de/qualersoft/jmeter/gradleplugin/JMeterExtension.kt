@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 
 /**
@@ -116,6 +117,23 @@ open class JMeterExtension(private val project: Project) {
   val logOutputFile: RegularFileProperty = objects.fileProperty().convention(
     layout.buildDirectory.file("logs/jmeter.log")
   )
+  // </editor-fold>
+
+  // <editor-fold desc="Remoting properties">
+  /**
+   * Flag to execute test on configured remote servers.
+   *
+   * Defaults to `false`.
+   */
+  val enableRemoteExecution: Property<Boolean> = objects.property<Boolean>().value(false)
+
+  /**
+   * Flag to exit remote servers at the end of the test.
+   * Only effective iff [enableRemoteExecution] is `true`.
+   *
+   * Defaults to `false`.
+   */
+  val exitRemoteServers: Property<Boolean> = objects.property<Boolean>().value(false)
   // </editor-fold>
 
   /**

@@ -1,23 +1,28 @@
 import de.qualersoft.parseSemVer
+import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.owasp.dependencycheck.gradle.extension.AnalyzerExtension
+import org.owasp.dependencycheck.gradle.extension.RetireJSExtension
+import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
-  `java-gradle-plugin`
-  kotlin("jvm") version "1.6.10"
+  kotlin("jvm") version "1.7.10"
 
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
-  id("io.gitlab.arturbosch.detekt") version "1.18.0"
+  id("io.gitlab.arturbosch.detekt") version "1.21.0"
+  id("org.owasp.dependencycheck") version "7.1.1"
 
   // documentation
-  id("org.jetbrains.dokka") version "1.5.0"
+  id("org.jetbrains.dokka") version "1.7.10"
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
-  `maven-publish`
-  id("com.gradle.plugin-publish") version "0.15.0"
-  id("org.jetbrains.changelog") version "1.3.0"
+  signing
+  id("com.gradle.plugin-publish") version "1.0.0"
+  id("org.jetbrains.changelog") version "1.3.1"
 }
 
 group = "de.qualersoft"
@@ -30,16 +35,27 @@ dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.7.2"))
+  testImplementation(platform("org.junit:junit-bom:5.8.2"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
-  testImplementation(group = "io.kotest", name = "kotest-runner-junit5", version = "4.6.4")
+  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.3.2")
 
   testRuntimeOnly(kotlin("script-runtime"))
+
+  // quality
+  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.21.0") {
+    because("We also want to check formatting issues.")
+  }
 }
 
 // Add a source set for the functional test suite
 val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest")
 configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
+
+pluginBundle {
+  website = "https://github.com/qualersoft/jmeter-gradle-plugin"
+  vcsUrl = "https://github.com/qualersoft/jmeter-gradle-plugin"
+  tags = listOf("jmeter", "test", "performance")
+}
 
 gradlePlugin {
   // Define the plugin
@@ -53,27 +69,29 @@ gradlePlugin {
   testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
 }
 
-pluginBundle {
-  website = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  vcsUrl = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  tags = listOf("jmeter", "test", "performance")
-}
-
 jacoco {
   toolVersion = "0.8.7"
 }
 
 detekt {
   allRules = false
-  buildUponDefaultConfig = true
-  config = files("$projectDir/detekt.yml")
-  source = files("src/main/kotlin")
+  source = files("src")
+  config = files("detekt.yml")
+  basePath = project.projectDir.path
+}
 
-  reports {
-    html.enabled = true
-    xml.enabled = true
-    txt.enabled = false
-  }
+dependencyCheck {
+  suppressionFile = file("config/dependencyCheck/suppressions.xml").path
+  formats = listOf(
+    Format.HTML,
+    Format.SARIF
+  )
+  analyzers(closureOf<AnalyzerExtension> {
+    assemblyEnabled = false // requires 'dotnet' executable which is not present everywhere
+    retirejs(closureOf<RetireJSExtension> {
+      enabled = false // because there seams to be an issue with RetireJS
+    })
+  })
 }
 
 if (project.version.toString().endsWith("-SNAPSHOT", true)) {
@@ -83,8 +101,6 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
 val javaVersion = JavaVersion.VERSION_1_8
 java {
   targetCompatibility = javaVersion
-  withSourcesJar()
-  withJavadocJar()
 }
 
 // Configure gradle-changelog-plugin plugin.
@@ -96,7 +112,7 @@ changelog {
 
 tasks {
 
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+  withType<KotlinCompile>().configureEach {
     kotlinOptions {
       jvmTarget = javaVersion.toString()
     }
@@ -106,9 +122,16 @@ tasks {
     enableStricterValidation.set(true)
   }
 
-  this.detekt {
+  withType<Detekt>().configureEach {
     // Target version of the generated JVM bytecode. It is used for type resolution.
-    this.jvmTarget = javaVersion.toString()
+    jvmTarget = javaVersion.toString()
+    reports {
+      html.required.set(true)
+      xml.required.set(true)
+      txt.required.set(false)
+      md.required.set(false)
+      sarif.required.set(true)
+    }
   }
 
   // Setup functional test sets
@@ -171,6 +194,12 @@ publishing {
       }
     }
   }
+}
+
+signing {
+  val signingKey: String? by project
+  val signingPassword: String? by project
+  useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
 val KINDS = listOf("major", "minor", "patch", "snapshot")
