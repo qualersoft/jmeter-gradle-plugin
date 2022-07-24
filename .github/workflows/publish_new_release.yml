@@ -64,6 +64,8 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MVN_CNTRL_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MVN_CNTRL_SECRET_KEY_PASS }}
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
