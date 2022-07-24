@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Added
 - added support for properties `-r` and `-X` for remote test execution (#50)
 
+### Fixed
+- Fixed issue with UP-TO-DATE check which let tasks fail after SetupTask was executed once (#48)
+
 ## [2.3.0]
 ### Added
 - Added additional cli-arguments for proxy-settings (#40)
