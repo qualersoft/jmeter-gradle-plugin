@@ -103,7 +103,7 @@ jobs:
             jacocoTestReport
 
       - name: "Publish Unit Test Results"
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           check_name: "Unit test results"
@@ -137,7 +137,7 @@ jobs:
           arguments: functionalTest
 
       - name: "Publish functional test results"
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           check_name: "Functional test results"
