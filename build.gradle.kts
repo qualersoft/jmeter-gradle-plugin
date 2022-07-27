@@ -35,7 +35,7 @@ dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.8.2"))
+  testImplementation(platform("org.junit:junit-bom:5.9.0"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
   testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.4.0")
 
@@ -70,7 +70,7 @@ gradlePlugin {
 }
 
 jacoco {
-  toolVersion = "0.8.7"
+  toolVersion = "0.8.8"
 }
 
 detekt {
