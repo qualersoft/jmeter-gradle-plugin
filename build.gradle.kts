@@ -41,6 +41,19 @@ dependencies {
 
   testRuntimeOnly(kotlin("script-runtime"))
 
+  testImplementation(group = "org.junit.platform", name = "junit-platform-commons") {
+    because(
+      """we need to implement custom strategy
+      |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
+    )
+  }
+  testImplementation(group = "org.junit.platform", name = "junit-platform-engine") {
+    because(
+      """we need to implement custom strategy
+      |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
+    )
+  }
+
   // quality
   detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.21.0") {
     because("We also want to check formatting issues.")
@@ -144,6 +157,7 @@ tasks {
     dependsOn(jar)
     applyJacocoWorkaround()
   }
+  @Suppress("UNCHECKED_CAST") // jacocoTestKit.apply signature only allows TaskProvider with type Task
   jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTest as TaskProvider<Task>)
   check {
     dependsOn(functionalTest)
@@ -202,6 +216,7 @@ signing {
   useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
+@Suppress("PropertyName")
 val KINDS = listOf("major", "minor", "patch", "snapshot")
 tasks.register("nextVersion") {
   doLast {
