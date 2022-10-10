@@ -15,6 +15,17 @@
     </notes>
     <packageUrl>pkg:maven/com.google.protobuf/protobuf-java@2.6.1</packageUrl>
     <cve>CVE-2021-22569</cve>
+    <cve>CVE-2022-3171</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      file name: jackson-databind-2.12.7.jar
+      Introduced by Dokka and cannot be constrained.
+      ]]>
+    </notes>
+    <cpe>cpe:2.3:a:fasterxml:jackson-databind:2.12.7:*:*:*:*:*:*:*</cpe>
+    <cve>CVE-2022-42003</cve>
+    <cve>CVE-2022-42004</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
