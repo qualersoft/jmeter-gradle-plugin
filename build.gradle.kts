@@ -55,7 +55,7 @@ dependencies {
   }
 
   // quality
-  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.21.0") {
+  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.22.0") {
     because("We also want to check formatting issues.")
   }
 }
