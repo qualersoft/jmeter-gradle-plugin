@@ -12,7 +12,7 @@ plugins {
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
-  id("io.gitlab.arturbosch.detekt") version "1.21.0"
+  id("io.gitlab.arturbosch.detekt") version "1.22.0"
   id("org.owasp.dependencycheck") version "7.3.2"
 
   // documentation
