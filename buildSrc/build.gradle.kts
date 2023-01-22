@@ -1,5 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-  kotlin("jvm") version "1.7.21"
+  kotlin("jvm") version "1.8.0"
 }
 
 repositories {
@@ -12,8 +15,9 @@ java {
   withSourcesJar()
   withJavadocJar()
 }
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-  kotlinOptions {
-    jvmTarget = javaVersion.toString()
+
+tasks.withType<KotlinCompile>().configureEach {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.fromTarget(javaVersion.majorVersion))
   }
 }
