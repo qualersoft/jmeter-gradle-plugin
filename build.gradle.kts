@@ -7,13 +7,13 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
-  kotlin("jvm") version "1.7.21"
+  kotlin("jvm") version "1.8.0"
 
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
-  id("io.gitlab.arturbosch.detekt") version "1.21.0"
-  id("org.owasp.dependencycheck") version "7.3.2"
+  id("io.gitlab.arturbosch.detekt") version "1.22.0"
+  id("org.owasp.dependencycheck") version "8.0.1"
 
   // documentation
   id("org.jetbrains.dokka") version "1.7.20"
@@ -35,7 +35,7 @@ dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.9.1"))
+  testImplementation(platform("org.junit:junit-bom:5.9.2"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
   testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.5.4")
 
@@ -55,9 +55,10 @@ dependencies {
   }
 
   // quality
-  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = "1.21.0") {
+  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = detekt.toolVersion) {
     because("We also want to check formatting issues.")
   }
+  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-rules-libraries", version = detekt.toolVersion)
 }
 
 // Add a source set for the functional test suite
@@ -112,6 +113,7 @@ if (project.version.toString().endsWith("-SNAPSHOT", true)) {
 }
 
 val javaVersion = JavaVersion.VERSION_1_8
+
 java {
   targetCompatibility = javaVersion
 }

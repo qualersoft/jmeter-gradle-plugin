@@ -6,12 +6,18 @@ on:
       - main
       - develop
       - issues/**
+      - renovate/**
 
 jobs:
   staticDetektCheck:
     name: "Detekt - static check"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -40,6 +46,11 @@ jobs:
     name: "Fossa licence analyze - static check"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -58,6 +69,11 @@ jobs:
     runs-on: ubuntu-latest
     name: "Build artifact"
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -71,6 +87,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -84,6 +105,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -107,7 +133,7 @@ jobs:
         if: always()
         with:
           check_name: "Unit test results"
-          files: build/test-results/**/*.xml
+          junit_files: build/test-results/**/*.xml
 
       - name: "Upload unit test report"
         uses: actions/upload-artifact@v3.1.2
@@ -120,6 +146,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
@@ -141,7 +172,7 @@ jobs:
         if: always()
         with:
           check_name: "Functional test results"
-          files: build/test-results/functionalTest/*.xml
+          junit_files: build/test-results/functionalTest/*.xml
 
       - name: "Upload functional test report"
         uses: actions/upload-artifact@v3.1.2
@@ -188,6 +219,11 @@ jobs:
       - report
       - licenceCheck
     steps:
+      - uses: actions/setup-java@v3.9.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: "Check out sources"
         uses: actions/checkout@v3.3.0
 
