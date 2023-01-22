@@ -319,7 +319,7 @@ Defaults to 'org.apache.jmeter'.
 <2> The name (artifact-id) of the jmeter-runner. +
 Defaults to 'ApacheJMeter'.
 <3> the version of the jmeter-runner. +
-Defaults to '5.4.1'.
+Defaults to '5.5'.
 <4> A closure/lambda to configure the dependency any further. +
 Will only applied if not `null` (which is the default).
 <5> The main class used to execute the jmeter runner. +

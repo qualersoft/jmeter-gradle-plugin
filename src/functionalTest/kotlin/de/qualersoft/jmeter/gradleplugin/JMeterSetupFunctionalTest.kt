@@ -135,7 +135,7 @@ class JMeterSetupFunctionalTest : JMeterPluginFunctionalTestBase() {
   companion object {
     const val DEFAULT_GROUP = "org.apache.jmeter"
     const val DEFAULT_NAME = "ApacheJMeter"
-    const val DEFAULT_VERSION = "5.4.1"
+    const val DEFAULT_VERSION = "5.5"
 
     const val SETUP_TASK_NAME = "setupJMeter"
   }

@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+### Changed
+- ⚠️Default jmeter version is now 5.5⚠️  
+  Please refer to https://jmeter.apache.org/changes.html for potential breaking changes
 
 ## [2.4.0]
 ### Added
