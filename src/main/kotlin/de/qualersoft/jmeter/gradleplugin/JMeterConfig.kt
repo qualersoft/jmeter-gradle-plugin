@@ -51,10 +51,10 @@ class JMeterConfig(private val project: Project) {
    * To compare against the default properties, execute the `setupJMeter`-task and use the files in
    * the build/jmeter folder.
    *
-   * Defaults to '5.4.1'
+   * Defaults to '5.5'
    */
   @Input
-  var version: String = "5.4.1"
+  var version: String = "5.5"
 
   /**
    * Closure that will be applied to the `dependency` declaration
