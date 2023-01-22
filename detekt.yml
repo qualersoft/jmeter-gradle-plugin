@@ -96,7 +96,7 @@ complexity:
     threshold: 10
     includeStaticDeclarations: false
     includePrivateDeclarations: false
-  ComplexMethod:
+  CyclomaticComplexMethod:
     active: true
     threshold: 15
     ignoreSingleWhenExpression: false
@@ -306,7 +306,6 @@ formatting:
   ArgumentListWrapping:
     active: false
     autoCorrect: true
-    indentSize: 4
     maxLineLength: 120
   ChainWrapping:
     active: true
@@ -331,7 +330,6 @@ formatting:
     active: true
     autoCorrect: false
     indentSize: 2
-    continuationIndentSize: 4
   MaximumLineLength:
     active: true
     maxLineLength: 120
@@ -384,7 +382,6 @@ formatting:
   ParameterListWrapping:
     active: true
     autoCorrect: true
-    indentSize: 4
     maxLineLength: 120
   SpacingAroundAngleBrackets:
     active: false
@@ -564,8 +561,6 @@ potential-bugs:
       - 'java.util.HashSet'
       - 'java.util.LinkedHashMap'
       - 'java.util.HashMap'
-  DuplicateCaseInWhenExpression:
-    active: true
   ElseCaseInsteadOfExhaustiveWhen:
     active: false
   EqualsAlwaysReturnsTrueOrFalse:
@@ -580,7 +575,7 @@ potential-bugs:
     active: true
   IgnoredReturnValue:
     active: true
-    restrictToAnnotatedMethods: true
+    restrictToConfig: true
     returnValueAnnotations:
       - '*.CheckResult'
       - '*.CheckReturnValue'
@@ -607,14 +602,9 @@ potential-bugs:
   MissingPackageDeclaration:
     active: false
     excludes: ['**/*.kts']
-  MissingWhenCase:
-    active: true
-    allowElseExpression: true
   NullCheckOnMutableProperty:
     active: true
   NullableToStringCall:
-    active: true
-  RedundantElseInWhen:
     active: true
   UnconditionalJumpStatementInLoop:
     active: false
@@ -650,7 +640,7 @@ style:
     active: false
   DataClassContainsFunctions:
     active: false
-    conversionFunctionPrefix: 'to'
+    conversionFunctionPrefix: [ 'to' ]
   DataClassShouldBeImmutable:
     active: false
   DestructuringDeclarationWithTooManyEntries:
@@ -681,16 +671,12 @@ style:
     imports: []
     forbiddenPatterns: ''
   ForbiddenMethodCall:
-    active: false
-    methods:
-      - 'kotlin.io.print'
-      - 'kotlin.io.println'
-  ForbiddenPublicDataClass:
     active: true
-    excludes: ['**']
-    ignorePackages:
-      - '*.internal'
-      - '*.internal.*'
+    methods:
+      - value: 'kotlin.io.print'
+        reason: 'We use a logger'
+      - value: 'kotlin.io.println'
+        reason: 'We use a logger'
   ForbiddenSuppress:
     active: false
     rules: []
@@ -702,13 +688,7 @@ style:
     active: true
     ignoreOverridableFunction: true
     ignoreActualFunction: true
-    excludedFunctions: ''
-  LibraryCodeMustSpecifyReturnType:
-    active: true
-    excludes: ['**']
-  LibraryEntitiesShouldNotBePublic:
-    active: true
-    excludes: ['**']
+    excludedFunctions: [ '' ]
   LoopWithTooManyJumpStatements:
     active: true
     maxJumpCount: 1
@@ -778,7 +758,7 @@ style:
   ReturnCount:
     active: true
     max: 2
-    excludedFunctions: 'equals'
+    excludedFunctions: [ 'equals' ]
     excludeLabeled: false
     excludeReturnFromLambda: true
     excludeGuardClauses: false
@@ -862,3 +842,16 @@ style:
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     excludeImports:
       - 'java.util.*'
+libraries:
+  ForbiddenPublicDataClass:
+    active: true
+    excludes: ['**']
+    ignorePackages:
+      - '*.internal'
+      - '*.internal.*'
+  LibraryCodeMustSpecifyReturnType:
+    active: true
+    excludes: ['**']
+  LibraryEntitiesShouldNotBePublic:
+    active: true
+    excludes: ['**']

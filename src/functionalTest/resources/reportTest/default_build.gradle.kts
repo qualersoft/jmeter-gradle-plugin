@@ -1,4 +1,5 @@
-import de.qualersoft.jmeter.gradleplugin.task.*
+import de.qualersoft.jmeter.gradleplugin.task.JMeterRunTask
+import de.qualersoft.jmeter.gradleplugin.task.JMeterReportTask
 
 plugins {
   id("de.qualersoft.jmeter")

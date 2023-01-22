@@ -18,6 +18,7 @@
     <packageUrl>pkg:maven/com.google.protobuf/protobuf-java@2.6.1</packageUrl>
     <cve>CVE-2021-22569</cve>
     <cve>CVE-2022-3171</cve>
+    <cve>CVE-2022-3509</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -31,11 +32,21 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
+      file name: woodstox-core-6.2.4.jar
+      Introduced by Dokka and cannot be constrained.
+      ]]>
+    </notes>
+    <packageUrl>pkg:maven/com.fasterxml.woodstox/woodstox-core@6.2.4</packageUrl>
+    <cve>CVE-2022-40152</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
       file name: snakeyaml-1.30.jar
       Introduced by Dokka and cannot be constrained.
       ]]>
     </notes>
     <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
+    <cve>CVE-2022-1471</cve>
     <cve>CVE-2022-25857</cve>
     <cve>CVE-2022-38749</cve>
     <cve>CVE-2022-38751</cve>
