@@ -65,13 +65,9 @@ dependencies {
 val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest")
 configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
 
-pluginBundle {
-  website = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  vcsUrl = "https://github.com/qualersoft/jmeter-gradle-plugin"
-  tags = listOf("jmeter", "test", "performance")
-}
-
 gradlePlugin {
+  website.set("https://github.com/qualersoft/jmeter-gradle-plugin")
+  vcsUrl.set("https://github.com/qualersoft/jmeter-gradle-plugin")
   // Define the plugin
   plugins.create("jmeter") {
     id = "de.qualersoft.jmeter"
@@ -79,6 +75,7 @@ gradlePlugin {
 
     displayName = "jmeter gradle plugin"
     description = "Plugin to execute JMeter tests."
+    tags.addAll("jmeter", "test", "performance")
   }
   testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
 }
