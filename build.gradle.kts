@@ -13,7 +13,7 @@ plugins {
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
   id("io.gitlab.arturbosch.detekt") version "1.22.0"
-  id("org.owasp.dependencycheck") version "8.0.1"
+  id("org.owasp.dependencycheck") version "8.1.0"
 
   // documentation
   id("org.jetbrains.dokka") version "1.7.20"
@@ -94,8 +94,8 @@ detekt {
 dependencyCheck {
   suppressionFile = file("config/dependencyCheck/suppressions.xml").path
   formats = listOf(
-    Format.HTML,
-    Format.SARIF
+    Format.HTML.name,
+    Format.SARIF.name
   )
   analyzers(closureOf<AnalyzerExtension> {
     assemblyEnabled = false // requires 'dotnet' executable which is not present everywhere
