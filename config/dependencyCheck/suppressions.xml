@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <suppress>
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: kotlin-analysis-intellij-1.7.20.jar
       Introduced by Dokka and cannot be constrained.
@@ -9,7 +9,8 @@
     <packageUrl>pkg:maven/com.google.code.gson/gson@2.8.8</packageUrl>
     <cve>CVE-2022-25647</cve>
   </suppress>
-  <suppress>
+
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: kotlin-analysis-intellij-1.7.20.jar
       Introduced by Dokka and cannot be constrained.
@@ -20,7 +21,18 @@
     <cve>CVE-2022-3171</cve>
     <cve>CVE-2022-3509</cve>
   </suppress>
-  <suppress>
+
+  <suppress until="2023-05-01">
+    <notes><![CDATA[
+      file name: kotlin-analysis-intellij-1.7.20.jar (shaded: com.google.guava:guava:31.0.1-jre)
+      Introduced by Dokka and cannot be constrained.
+      ]]>
+    </notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <vulnerabilityName>CVE-2020-8908</vulnerabilityName>
+  </suppress>
+
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: jackson-databind-2.12.7.jar
       Introduced by Dokka and cannot be constrained.
@@ -30,7 +42,8 @@
     <cve>CVE-2022-42003</cve>
     <cve>CVE-2022-42004</cve>
   </suppress>
-  <suppress>
+
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: woodstox-core-6.2.4.jar
       Introduced by Dokka and cannot be constrained.
@@ -39,7 +52,8 @@
     <packageUrl>pkg:maven/com.fasterxml.woodstox/woodstox-core@6.2.4</packageUrl>
     <cve>CVE-2022-40152</cve>
   </suppress>
-  <suppress>
+
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: snakeyaml-1.30.jar
       Introduced by Dokka and cannot be constrained.
@@ -53,7 +67,8 @@
     <cve>CVE-2022-38752</cve>
     <cve>CVE-2022-38750</cve>
   </suppress>
-  <suppress>
+
+  <suppress until="2023-05-01">
     <notes><![CDATA[
       file name: jsoup-1.14.3.jar
       Introduced by Dokka and cannot be constrained.
