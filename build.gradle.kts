@@ -7,7 +7,7 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
-  kotlin("jvm") version "1.8.0"
+  kotlin("jvm") version "1.8.10"
 
   // quality
   jacoco
@@ -16,7 +16,7 @@ plugins {
   id("org.owasp.dependencycheck") version "8.1.2"
 
   // documentation
-  id("org.jetbrains.dokka") version "1.7.20"
+  id("org.jetbrains.dokka") version "1.8.10"
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
