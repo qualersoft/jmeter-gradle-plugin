@@ -37,7 +37,7 @@ dependencies {
 
   testImplementation(platform("org.junit:junit-bom:5.9.2"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
-  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.5.5")
+  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.6.2")
 
   testRuntimeOnly(kotlin("script-runtime"))
 
