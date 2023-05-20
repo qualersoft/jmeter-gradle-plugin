@@ -7,11 +7,11 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
-  kotlin("jvm") version "1.8.20"
+  kotlin("jvm") version "1.8.21"
 
   // quality
   jacoco
-  id("pl.droidsonroids.jacoco.testkit") version "1.0.9"
+  id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
   id("io.gitlab.arturbosch.detekt") version "1.22.0"
   id("org.owasp.dependencycheck") version "8.2.1"
 
@@ -35,9 +35,9 @@ dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.9.2"))
+  testImplementation(platform("org.junit:junit-bom:5.9.3"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
-  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.5.5")
+  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.6.2")
 
   testRuntimeOnly(kotlin("script-runtime"))
 
@@ -81,7 +81,7 @@ gradlePlugin {
 }
 
 jacoco {
-  toolVersion = "0.8.8"
+  toolVersion = "0.8.10"
 }
 
 detekt {

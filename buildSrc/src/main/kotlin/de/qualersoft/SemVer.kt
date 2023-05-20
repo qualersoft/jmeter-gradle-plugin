@@ -76,11 +76,12 @@ data class SemVer(
 private const val MIN_SEMVER_PARTS = 3
 
 fun parseSemVer(version: String?): SemVer {
-  if (null == version) {
+  if (version.isNullOrBlank()) {
     return SemVer()
   }
 
-  val versionParts = version.split(".").toMutableList()
+  // as `pre` and `build` parts may also contain '.'s we limit max results
+  val versionParts = version.trim().split(".", limit = MIN_SEMVER_PARTS).toMutableList()
 
   // fill up missing parts with 0
   if (MIN_SEMVER_PARTS > versionParts.size) {
@@ -90,7 +91,7 @@ fun parseSemVer(version: String?): SemVer {
   }
 
   // normalize last entry
-  val semVerPattern = "^(?<patch>[\\d]+)(-(?<pre>[\\d\\w-.]+))?(\\+(?<build>[\\d\\w-.]+))?\$".toRegex()
+  val semVerPattern = "^(?<patch>\\d+)(-(?<pre>[\\w-.]+))?(\\+(?<build>[\\w-.]+))?\$".toRegex()
   // should never be null because at least we have a patch
   val matches = semVerPattern.matchEntire(versionParts[2])!!
   return SemVer(
