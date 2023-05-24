@@ -432,7 +432,6 @@ naming:
     active: false
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     allowedPattern: '^(is|has|are)'
-    ignoreOverridden: true
   ClassNaming:
     active: true
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
@@ -443,7 +442,6 @@ naming:
     parameterPattern: '[a-z][A-Za-z0-9]*'
     privateParameterPattern: '[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   EnumNaming:
     active: true
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
@@ -465,13 +463,11 @@ naming:
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     functionPattern: '([a-z][a-zA-Z0-9]*)|(`.*`)'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   FunctionParameterNaming:
     active: true
     excludes: ['**/test/**', '**/functionalTest/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     parameterPattern: '[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   InvalidPackageDeclaration:
     active: true
     rootPackage: ''
@@ -520,7 +516,6 @@ naming:
     variablePattern: '[a-z][A-Za-z0-9]*'
     privateVariablePattern: '(_)?[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
 
 performance:
   active: true
@@ -629,6 +624,10 @@ potential-bugs:
 
 style:
   active: true
+  BracesOnIfStatements:
+    active: true
+    singleLine: always
+    multiLine: always
   CanBeNonNullable:
     active: true
   CascadingCallWrapping:
@@ -659,13 +658,16 @@ style:
     includeLineWrapping: false
   ForbiddenComment:
     active: true
-    values:
-      - 'BUG:'
-      - 'FIXME:'
-      - 'STOPSHIP:'
-      - 'TODO:'
+    comments:
+      - value: 'BUG:(?! https?://[^\s]+).*'
+        reason: 'include an issue link at the beginning preceded by a space'
+      - value: 'FIXME:'
+        reason: 'Forbidden FIXME marker in comment, please fix the problem.'
+      - value: 'TODO:'
+        reason: 'Forbidden TODO marker in comment, please do the changes.'
+      - value: 'STOPSHIP:'
+        reason: 'Forbidden STOPSHIP marker in comment, please address the problem before shipping the code.'
     allowedPatterns: '\wBUG'
-    customMessage: ''
   ForbiddenImport:
     active: false
     imports: []
@@ -710,8 +712,6 @@ style:
     ignoreEnums: false
     ignoreRanges: false
     ignoreExtensionFunctions: true
-  MandatoryBracesIfStatements:
-    active: true
   MandatoryBracesLoops:
     active: true
   MaxChainedCallsOnSameLine:

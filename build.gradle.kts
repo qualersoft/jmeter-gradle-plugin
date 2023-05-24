@@ -12,7 +12,7 @@ plugins {
   // quality
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
-  id("io.gitlab.arturbosch.detekt") version "1.22.0"
+  id("io.gitlab.arturbosch.detekt") version "1.23.0"
   id("org.owasp.dependencycheck") version "8.2.1"
 
   // documentation
@@ -86,8 +86,8 @@ jacoco {
 
 detekt {
   allRules = false
-  source = files("src")
-  config = files("detekt.yml")
+  source.from(files("src"))
+  config.from(files("detekt.yml"))
   basePath = project.projectDir.path
 }
 

@@ -389,8 +389,24 @@ class JMeterRunTaskTest : JMeterTaskTestBase() {
 
     private fun checkForFlags(args: List<String>, title: String, remoteFlag: Boolean, exitFlag: Boolean) = assertAll(
       title,
-      { withClue("Remote-Flag") { if (remoteFlag) args shouldContain "-r" else args shouldNotContain "-r" } },
-      { withClue("Exit-Flag") { if (exitFlag) args shouldContain "-X" else args shouldNotContain "-X" } }
+      {
+        withClue("Remote-Flag") {
+          if (remoteFlag) {
+            args shouldContain "-r"
+          } else {
+            args shouldNotContain "-r"
+          }
+        }
+      },
+      {
+        withClue("Exit-Flag") {
+          if (exitFlag) {
+            args shouldContain "-X"
+          } else {
+            args shouldNotContain "-X"
+          }
+        }
+      }
     )
   }
 }
