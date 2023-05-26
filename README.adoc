@@ -336,6 +336,11 @@ dependencies {
 ----
 <1> Resolves the 'a-plugin' and puts its artifact into `/lib/ext`, transitive dependencies will be put to `lib` directory.
 
+[NOTE]
+====
+Please note the <<Pitfalls when using jmeter-dependencies/-plugins>> section.
+====
+
 By default, this plugin includes the following plugins (as they are also default plugins in a normal JMeter installation):
 ====
 "bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap", "mail", "mongodb", "native", "tcp"
@@ -357,7 +362,42 @@ dependencies {
 ----
 <1> Resolves the 'commons-csv' artifact and puts its artifact, and all its transitive dependencies, under `/lib` directory.
 
+[NOTE]
+====
+Please note the <<Pitfalls when using jmeter-dependencies/-plugins>> section.
+====
+
 [CAUTION,title=Internal only]
 ====
 Within an IDE with autocomplete, you may also notice the `jmeterRunner` dependency handler. This is for internal use only! Please use the respective `jmeter.tool` properties to configure the runner.
 ====
+
+=== Pitfalls when using jmeter-dependencies/-plugins
+Some of the jmeter dependencies or plugins, which you want to apply through `jmeterLibrary` or `jmeterPlugin` might
+depend on 'org.apache.jmeter:bom'.
+This dependency seems not available on any maven-repository (for further information refer to https://bz.apache.org/bugzilla/show_bug.cgi?id=64465[Issue 64465]).
+If you are affected by this issue, you will see an error message similar to
+----
+...
+> Could not resolve all dependencies for configuration ':jmeterPlugin'.
+> Could not find org.apache.jmeter:bom:5.5.
+Required by:
+    project > ...
+----
+when executing one of the jmeter-tasks.
+As a convenient workaround, the `jmeter-gradle-plugin` provides the `jmeter.tool.applyBomWorkaround` function.
+You can apply it to the affected dependencies like this:
+[source,kotlin]
+----
+dependencies {
+  // in case a library is affected
+  jmeterLibrary("org.apache.jmeter:a-library:1.2.3") {
+    jmeter.tool.applyBomWorkaround(this)
+  }
+
+  // or in case a plugin is affected
+  jmeterPlugin("org.jmeter:a-plugin:1.2.3") {
+    jmeter.tool.applyBomWorkaround(this)
+  }
+}
+----
