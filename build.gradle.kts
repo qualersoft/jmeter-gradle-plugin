@@ -16,7 +16,7 @@ plugins {
   id("org.owasp.dependencycheck") version "8.2.1"
 
   // documentation
-  id("org.jetbrains.dokka") version "1.8.10"
+  id("org.jetbrains.dokka") version "1.8.20"
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
@@ -215,7 +215,7 @@ signing {
   useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
-@Suppress("PropertyName")
+@Suppress("PropertyName", "VariableNaming")
 val KINDS = listOf("major", "minor", "patch", "snapshot")
 tasks.register("nextVersion") {
   doLast {
