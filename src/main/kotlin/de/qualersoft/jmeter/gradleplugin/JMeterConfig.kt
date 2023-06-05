@@ -129,11 +129,11 @@ class JMeterConfig(private val project: Project) {
    * Creates a dependency notation for a jmeter core extension where group is [group].
    *
    * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
-   * @param version The version to use, defaults to [version]
+   * @param version The version to use, defaults to [JMeterConfig.version]
    */
-  fun jmeterDependency(name: String, version: String? = null) = mutableMapOf<String, String>().also {
+  fun jmeterDependency(name: String, version: String = this.version) = mutableMapOf<String, String>().also {
     it["group"] = group
     it["name"] = "ApacheJMeter_$name"
-    it["version"] = version ?: this.version
+    it["version"] = version
   }
 }
