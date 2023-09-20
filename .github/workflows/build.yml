@@ -13,7 +13,7 @@ jobs:
     name: "Detekt - static check"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -46,7 +46,7 @@ jobs:
     name: "Fossa licence analyze - static check"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Build artifact"
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -219,7 +219,7 @@ jobs:
       - report
       - licenceCheck
     steps:
-      - uses: actions/setup-java@v3.11.0
+      - uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin'
           java-version: '17'
