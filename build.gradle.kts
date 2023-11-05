@@ -35,7 +35,7 @@ dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.9.3"))
+  testImplementation(platform("org.junit:junit-bom:5.10.1"))
   testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
   testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.6.2")
 
