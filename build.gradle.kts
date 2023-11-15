@@ -13,7 +13,7 @@ plugins {
   jacoco
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
   id("io.gitlab.arturbosch.detekt") version "1.23.0"
-  id("org.owasp.dependencycheck") version "8.2.1"
+  id("org.owasp.dependencycheck") version "8.4.3"
 
   // documentation
   id("org.jetbrains.dokka") version "1.8.20"
