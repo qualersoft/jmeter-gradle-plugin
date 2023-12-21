@@ -109,13 +109,13 @@ class JMeterRunFunctionalTest : JMeterPluginFunctionalTestBase() {
 
   @Test
   fun `set maxHeap by commandline`() {
-    val runner = setupTest("default_build").withArguments("runTest", "--maxHeap=32m")
+    val runner = setupTest("default_build").withArguments("runTest", "--maxHeap=20m")
     copyJmxToDefaultLocation()
 
     val result = runner.build()
 
     val out = result.output
-    out shouldContain "Using maximum heap size of 32m."
+    out shouldContain "Using maximum heap size of 20m."
   }
 
   @Test

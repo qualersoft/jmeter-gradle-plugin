@@ -16,7 +16,7 @@ import org.gradle.api.tasks.Internal
  * Provides settings for the used dependency of the main runner ([group], [name], [version], [main class][mainClass]).
  *
  * *Remark:*
- * Be careful when changing this properties.
+ * Be careful when changing these properties.
  */
 class JMeterConfig(private val project: Project) {
 

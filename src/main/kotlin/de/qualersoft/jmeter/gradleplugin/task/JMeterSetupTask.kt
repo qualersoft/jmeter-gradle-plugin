@@ -9,7 +9,9 @@ import de.qualersoft.jmeter.gradleplugin.jmeter
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
@@ -25,19 +27,18 @@ open class JMeterSetupTask : DefaultTask() {
   protected val jmTool = project.jmeter().tool
 
   @OutputDirectory
-  protected val jmToolDir = project.buildDir.resolve("jmeter")
+  protected val jmToolDir: Provider<Directory> = project.layout.buildDirectory.dir("jmeter")
 
-  private val jmBinDir = jmToolDir.resolve("bin")
-  private val jmLibDir = jmToolDir.resolve("lib")
-  private val jmExtDir = jmLibDir.resolve("ext")
-  private val jmJUnitDir = jmLibDir.resolve("junit")
+  private val jmBinDir = jmToolDir.map { it.dir("bin") }
+  private val jmLibDir = jmToolDir.map { it.dir("lib") }
+  private val jmExtDir = jmLibDir.map { it.dir("ext") }
+  private val jmJUnitDir = jmLibDir.map { it.dir("junit") }
 
   private val sourceJmJar by lazy { getJMeterLib() }
 
   @get:OutputFile
-  internal val jmJar: RegularFileProperty = project.objects.fileProperty().value {
-    jmBinDir.resolve("${jmTool.name}-${jmTool.version}.jar")
-  }
+  internal val jmJar: RegularFileProperty = project.objects.fileProperty()
+    .value(jmBinDir.map { it.file("${jmTool.name}-${jmTool.version}.jar") })
 
   init {
     group = "jmeter"
@@ -51,7 +52,7 @@ open class JMeterSetupTask : DefaultTask() {
     sourceJmJar.copyTo(jmJar.asFile.get(), true)
 
     val resourceJar = getJMeterResourceLib()
-    CopyResource.extractJarToDir(JarFile(resourceJar), jmToolDir)
+    CopyResource.extractJarToDir(JarFile(resourceJar), jmToolDir.get().asFile)
 
     resolveAndCopyExtensionLibs()
     resolveAndCopyToolLibs()
@@ -104,7 +105,7 @@ open class JMeterSetupTask : DefaultTask() {
         it.moduleArtifacts
       }
       .map { it.file }
-      .forEach { it.copyToDir(jmExtDir) }
+      .forEach { it.copyToDir(jmExtDir.get().asFile) }
 
     resolvedExtensions
       .flatMap { it.children }
@@ -112,7 +113,7 @@ open class JMeterSetupTask : DefaultTask() {
       .filterNot { resolvedExtensions.contains(it) }
       .flatMap { it.allModuleArtifacts }
       .map { it.file }
-      .forEach { it.copyToDir(jmLibDir) }
+      .forEach { it.copyToDir(jmLibDir.get().asFile) }
   }
 
   /**
@@ -123,7 +124,7 @@ open class JMeterSetupTask : DefaultTask() {
       .resolvedConfiguration
       .resolvedArtifacts
       .map { it.file }
-      .forEach { it.copyToDir(jmLibDir) }
+      .forEach { it.copyToDir(jmLibDir.get().asFile) }
   }
 
   /**
@@ -131,20 +132,18 @@ open class JMeterSetupTask : DefaultTask() {
    * Only create the directories that aren't exist.
    */
   private fun prepareDirectories() {
-    if (!jmToolDir.exists()) {
-      jmToolDir.mkdirs()
-    }
-    if (!jmBinDir.exists()) {
-      jmBinDir.mkdirs()
-    }
-    if (!jmLibDir.exists()) {
-      jmLibDir.mkdirs()
-    }
-    if (!jmExtDir.exists()) {
-      jmExtDir.mkdirs()
-    }
-    if (!jmJUnitDir.exists()) {
-      jmJUnitDir.mkdirs()
+    jmToolDir.createIfNotExists()
+    jmBinDir.createIfNotExists()
+    jmLibDir.createIfNotExists()
+    jmExtDir.createIfNotExists()
+    jmJUnitDir.createIfNotExists()
+  }
+
+  private fun Provider<Directory>.createIfNotExists() {
+    this.get().asFile.apply {
+      if (!exists()) {
+        mkdirs()
+      }
     }
   }
 }

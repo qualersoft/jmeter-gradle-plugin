@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -108,7 +108,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2
@@ -222,7 +222,7 @@ jobs:
       - uses: actions/setup-java@v3.11.0
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: "Check out sources"
         uses: actions/checkout@v3.5.2

@@ -5,27 +5,35 @@ import org.junit.platform.engine.support.hierarchical.DefaultParallelExecutionCo
 import org.junit.platform.engine.support.hierarchical.ParallelExecutionConfiguration
 import org.junit.platform.engine.support.hierarchical.ParallelExecutionConfigurationStrategy
 import org.junit.platform.commons.util.Preconditions
+import org.junit.platform.engine.support.hierarchical.DefaultParallelExecutionConfigurationStrategy.CONFIG_FIXED_PARALLELISM_PROPERTY_NAME
 import java.math.BigDecimal
 
 /**
  * This is required to workaround JUNIT5 issue https://github.com/junit-team/junit5/issues/1858
  */
 class CustomParallelExecutionConfigurationStrategy : ParallelExecutionConfigurationStrategy {
+
   override fun createConfiguration(configurationParameters: ConfigurationParameters): ParallelExecutionConfiguration {
 
     val factor: BigDecimal = configurationParameters
       .get(CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME) { BigDecimal(it) }
       .orElse(BigDecimal.ONE)
+    val maxThreads = configurationParameters.get(CONFIG_FIXED_PARALLELISM_PROPERTY_NAME) { BigDecimal(it).toInt() }
 
     Preconditions.condition(factor > BigDecimal.ZERO) {
       """Factor '$factor' specified via configuration parameter 
         |'$CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME' must be greater than 0""".trimMargin().replace("\n", "")
     }
 
-    val parallelism = 1.coerceAtLeast(
+    var parallelism = 1.coerceAtLeast(
       factor.multiply(BigDecimal.valueOf(Runtime.getRuntime().availableProcessors().toLong())).toInt()
     )
-    return CustomParallelExecutionConfiguration(parallelism, parallelism, parallelism, parallelism, KEEP_ALIVE_SECONDS)
+    if (maxThreads.isPresent) {
+      parallelism = maxThreads.get().coerceAtMost(parallelism)
+    }
+
+    val poolSize = parallelism + 2
+    return CustomParallelExecutionConfiguration(parallelism, parallelism, poolSize, poolSize, KEEP_ALIVE_SECONDS)
   }
 
   data class CustomParallelExecutionConfiguration(
@@ -43,6 +51,6 @@ class CustomParallelExecutionConfigurationStrategy : ParallelExecutionConfigurat
   }
 
   companion object {
-    const val KEEP_ALIVE_SECONDS = 30
+    const val KEEP_ALIVE_SECONDS = 5
   }
 }
