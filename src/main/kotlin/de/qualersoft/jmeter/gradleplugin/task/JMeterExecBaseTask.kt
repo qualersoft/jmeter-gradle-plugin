@@ -15,7 +15,6 @@ import org.gradle.work.DisableCachingByDefault
  * properties and functionality of run- and report-tasks.
  * It is not meant for instantiation nor direct usage.
  */
-@Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Dedicated tasks has to decide")
 abstract class JMeterExecBaseTask : JMeterBaseTask() {
 

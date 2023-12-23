@@ -7,6 +7,8 @@ import org.junit.platform.engine.support.hierarchical.ParallelExecutionConfigura
 import org.junit.platform.commons.util.Preconditions
 import org.junit.platform.engine.support.hierarchical.DefaultParallelExecutionConfigurationStrategy.CONFIG_FIXED_PARALLELISM_PROPERTY_NAME
 import java.math.BigDecimal
+import java.util.concurrent.ForkJoinPool
+import java.util.function.Predicate
 
 /**
  * This is required to workaround JUNIT5 issue https://github.com/junit-team/junit5/issues/1858
@@ -32,8 +34,8 @@ class CustomParallelExecutionConfigurationStrategy : ParallelExecutionConfigurat
       parallelism = maxThreads.get().coerceAtMost(parallelism)
     }
 
-    val poolSize = parallelism + 2
-    return CustomParallelExecutionConfiguration(parallelism, parallelism, poolSize, poolSize, KEEP_ALIVE_SECONDS)
+    val poolSize = parallelism * 2
+    return CustomParallelExecutionConfiguration(parallelism, parallelism, poolSize, parallelism, KEEP_ALIVE_SECONDS)
   }
 
   data class CustomParallelExecutionConfiguration(
@@ -48,6 +50,9 @@ class CustomParallelExecutionConfigurationStrategy : ParallelExecutionConfigurat
     override fun getMaxPoolSize(): Int = maxPoolSize
     override fun getCorePoolSize(): Int = corePoolSize
     override fun getKeepAliveSeconds(): Int = keepAliveSeconds
+    override fun getSaturatePredicate(): Predicate<in ForkJoinPool> {
+      return Predicate { true }
+    }
   }
 
   companion object {

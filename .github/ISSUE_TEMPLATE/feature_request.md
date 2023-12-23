@@ -2,7 +2,7 @@
 name: Enhancement
 about: Suggest an idea for this project
 title: ''
-labels: 'enhancement'
+labels: 'a:enhancement'
 assignees: ''
 ---
 
