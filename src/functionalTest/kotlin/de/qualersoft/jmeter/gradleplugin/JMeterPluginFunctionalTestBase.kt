@@ -25,7 +25,7 @@ open class JMeterPluginFunctionalTestBase {
   /**
    * Meant to be overridden if required.
    * If not `null` the whole folder will be copied.
-   * @see setupTest
+   * @see copyTestFileToTemp
    */
   protected var rootFolder: () -> String? = { null }
 

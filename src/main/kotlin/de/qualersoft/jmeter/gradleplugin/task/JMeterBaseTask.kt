@@ -28,7 +28,7 @@ import java.io.File
  * Base task for all JMeter*Tasks.
  * Take care of proper preparation of jmeter runtime.
  */
-@Suppress("UnstableApiUsage", "TooManyFunctions")
+@Suppress("TooManyFunctions")
 @DisableCachingByDefault(because = "Abstract base class")
 abstract class JMeterBaseTask : JavaExec() {
 

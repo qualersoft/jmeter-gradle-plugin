@@ -20,7 +20,6 @@ import org.gradle.work.DisableCachingByDefault
  *
  * This is the preferred way to run performance tests.
  */
-@Suppress("UnstableApiUsage")
 @DisableCachingByDefault(because = "Would love to execute jmeter tests more than once;)")
 open class JMeterRunTask : JMeterExecBaseTask() {
 
@@ -165,12 +164,12 @@ open class JMeterRunTask : JMeterExecBaseTask() {
 
   @Input
   @Optional
-  val enableRemoteExecution = objectFactory.property<Boolean>()
+  val enableRemoteExecution: Property<Boolean> = objectFactory.property<Boolean>()
     .value(jmExt.enableRemoteExecution)
 
   @Input
   @Optional
-  val exitRemoteServers = objectFactory.property<Boolean>()
+  val exitRemoteServers: Property<Boolean> = objectFactory.property<Boolean>()
     .value(jmExt.exitRemoteServers)
   // </editor-fold>
 

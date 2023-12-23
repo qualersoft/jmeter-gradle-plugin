@@ -11,6 +11,7 @@ plugins {
 
   // quality
   jacoco
+  `jacoco-report-aggregation`
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
   id("io.gitlab.arturbosch.detekt") version "1.23.4"
   id("org.owasp.dependencycheck") version "9.0.7"
@@ -31,30 +32,63 @@ repositories {
   mavenCentral()
 }
 
+@Suppress("UnstableApiUsage")
+testing {
+  val junitVersion = "5.10.1"
+  suites {
+    val test by getting(JvmTestSuite::class) {
+      useJUnitJupiter(junitVersion)
+      dependencies {
+        implementation("io.kotest:kotest-assertions-core:5.8.0")
+      }
+    }
+
+    register<JvmTestSuite>("functionalTest") {
+      useJUnitJupiter(junitVersion)
+      dependencies {
+        implementation(project())
+        implementation("io.kotest:kotest-assertions-core:5.8.0")
+        implementation(gradleTestKit())
+
+        implementation(platform("org.junit:junit-bom:5.10.1"))
+        implementation("org.junit.platform:junit-platform-commons") {
+          because(
+            """we need to implement custom strategy
+              |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
+          )
+        }
+        implementation("org.junit.platform:junit-platform-engine") {
+          because(
+            """we need to implement custom strategy
+              |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
+          )
+        }
+      }
+
+      targets.all {
+        testTask.configure {
+          dependsOn(tasks.jar)
+          mustRunAfter(test)
+          applyJacocoWorkaround()
+        }
+
+        jacocoTestKit {
+          @Suppress("UNCHECKED_CAST")
+          applyTo("functionalTestRuntimeOnly", testTask as TaskProvider<Task>)
+        }
+        tasks.check {
+          dependsOn(testTask)
+        }
+      }
+    }
+  }
+}
+
 dependencies {
   // Align versions of all Kotlin components
   implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 
-  testImplementation(platform("org.junit:junit-bom:5.10.1"))
-  testImplementation(group = "org.junit.jupiter", name = "junit-jupiter")
-  testRuntimeOnly(group = "org.junit.platform", name = "junit-platform-launcher")
-
-  testImplementation(group = "io.kotest", name = "kotest-assertions-core", version = "5.8.0")
-
   testRuntimeOnly(kotlin("script-runtime"))
-
-  testImplementation(group = "org.junit.platform", name = "junit-platform-commons") {
-    because(
-      """we need to implement custom strategy
-      |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
-    )
-  }
-  testImplementation(group = "org.junit.platform", name = "junit-platform-engine") {
-    because(
-      """we need to implement custom strategy
-      |see https://github.com/junit-team/junit5/issues/1858""".trimMargin()
-    )
-  }
 
   // quality
   detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = detekt.toolVersion) {
@@ -63,10 +97,24 @@ dependencies {
   detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-rules-libraries", version = detekt.toolVersion)
 }
 
-// Add a source set for the functional test suite
-val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest")
-configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
+@Suppress("UnstableApiUsage")
+reporting {
+  reports {
+    register<JacocoCoverageReport>("jacocoAggregatedCoverageReport") {
+      reportTask {
+        val allJacocoTasksData = tasks.withType<Test>()
+          .mapNotNull { it.extensions.findByType<JacocoTaskExtension>()?.destinationFile }
+        executionData.from(allJacocoTasksData)
+        testType = "aggregated"
+      }
+    }
+  }
+}
 
+// Add a source set for the functional test suite
+val functionalTestSourceSet: SourceSet = sourceSets.getByName("functionalTest")
+
+@Suppress("UnstableApiUsage")
 gradlePlugin {
   website.set("https://github.com/qualersoft/jmeter-gradle-plugin")
   vcsUrl.set("https://github.com/qualersoft/jmeter-gradle-plugin")
@@ -147,22 +195,6 @@ tasks {
       sarif.required.set(true)
     }
   }
-
-  // Setup functional test sets
-  val functionalTest: TaskProvider<Test> by registering(Test::class) {
-    description = "Run the functional tests"
-    group = "verification"
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = sourceSets.named("functionalTest").get().runtimeClasspath
-    shouldRunAfter(test)
-    dependsOn(jar)
-    applyJacocoWorkaround()
-  }
-  @Suppress("UNCHECKED_CAST") // jacocoTestKit.apply signature only allows TaskProvider with type Task
-  jacocoTestKit.applyTo("functionalTestRuntimeOnly", functionalTest as TaskProvider<Task>)
-  check {
-    dependsOn(functionalTest)
-  }
   pluginUnderTestMetadata {
     // https://discuss.gradle.org/t/how-to-make-gradle-testkit-depend-on-output-jar-rather-than-just-classes/18940/2
     val gradlePlgExt = project.extensions.getByName<GradlePluginDevelopmentExtension>("gradlePlugin")
@@ -181,7 +213,6 @@ tasks {
   }
 
   withType<JacocoReport> {
-    executionData(withType<Test>())
     reports {
       csv.required.set(false)
       html.required.set(true)
@@ -265,8 +296,8 @@ fun getGradlePropsFile(): File {
 }
 
 object LOCK {
-  const val waitMillis = 200L
-  const val maxTries = 100
+  const val MILLIS_TO_WAIT = 200L
+  const val MAX_TRIES = 100
 }
 
 // https://github.com/koral--/jacoco-gradle-testkit-plugin/issues/9
@@ -276,7 +307,6 @@ fun Test.applyJacocoWorkaround() {
     this.doLast("JacocoLockWorkaround") {
       logger.lifecycle("Running on Windows -> using jacoco-lock workaround")
       fun File.isLocked() = !renameTo(this)
-      logger.lifecycle("Execute workaround")
       val jacocoTestExec = checkNotNull(extensions.getByType(JacocoTaskExtension::class)).destinationFile
       if (null == jacocoTestExec) {
         logger.lifecycle("No exec file ô.Ô?")
@@ -284,9 +314,9 @@ fun Test.applyJacocoWorkaround() {
       }
       logger.lifecycle("Waiting for $jacocoTestExec to become unlocked")
       var tries = 0
-      while ((!jacocoTestExec.exists() || jacocoTestExec.isLocked()) && (tries++ < LOCK.maxTries)) {
-        logger.lifecycle("Waiting ${LOCK.waitMillis} ms (${jacocoTestExec.name} is locked) the ${tries}th time...")
-        Thread.sleep(LOCK.waitMillis)
+      while ((!jacocoTestExec.exists() || jacocoTestExec.isLocked()) && (tries++ < LOCK.MAX_TRIES)) {
+        logger.lifecycle("Waiting ${LOCK.MILLIS_TO_WAIT} ms (${jacocoTestExec.name} is locked) the ${tries}th time...")
+        Thread.sleep(LOCK.MILLIS_TO_WAIT)
       }
       logger.lifecycle("Done waiting (${jacocoTestExec.name} is unlocked).")
     }
