@@ -2,6 +2,7 @@ import de.qualersoft.parseSemVer
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.owasp.dependencycheck.gradle.extension.AnalyzerExtension
+import org.owasp.dependencycheck.gradle.extension.NvdExtension
 import org.owasp.dependencycheck.gradle.extension.RetireJSExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
@@ -152,6 +153,13 @@ dependencyCheck {
     retirejs(closureOf<RetireJSExtension> {
       enabled = false // because there seams to be an issue with RetireJS
     })
+    System.getenv().getOrDefault("NVD_API_KEY", findProperty("NVD_API_KEY"))?.also {
+      if ((it as String).isNotBlank()) {
+        nvd(closureOf<NvdExtension> {
+          apiKey = it
+        })
+      }
+    }
   })
 }
 
