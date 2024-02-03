@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
-  <suppress until="2024-02-01">
+  <suppress until="2024-04-01">
     <notes><![CDATA[
       file name: kotlin-analysis-intellij-1.9.10.jar (shaded: com.google.guava:guava:31.0.1-jre)
       Introduced by Dokka and cannot be constrained.
@@ -12,7 +12,7 @@
     <cve>CVE-2023-2976</cve>
   </suppress>
 
-  <suppress until="2024-02-01">
+  <suppress until="2024-04-01">
     <notes><![CDATA[
       file name: analysis-kotlin-descriptors-1.9.10.jar (shaded: org.jetbrains.intellij.deps:log4j:1.2.17.2)
       Introduced by Dokka and cannot be constrained.
@@ -24,7 +24,7 @@
     <cve>CVE-2023-26464</cve>
   </suppress>
 
-  <suppress until="2024-02-01">
+  <suppress until="2024-04-01">
     <notes><![CDATA[
       file name: jackson-databind-2.12.7.jar
       Introduced by Dokka.
@@ -34,7 +34,16 @@
     <cve>CVE-2023-35116</cve>
   </suppress>
 
-  <suppress until="2024-02-01">
+  <suppress until="2024-04-01">
+    <notes><![CDATA[
+      ]]>
+    </notes>
+    <cpe>cpe:2.3:a:apache:commons_compress:1.21:*:*:*:*:*:*:*</cpe>
+    <cve>CVE-2024-25710</cve>
+    <cve>CVE-2024-26308</cve>
+  </suppress>
+
+  <suppress until="2024-04-01">
     <notes><![CDATA[
       file name: woodstox-core-6.2.4.jar
       Introduced by Dokka.
@@ -43,4 +52,14 @@
     <packageUrl>pkg:maven/com.fasterxml.woodstox/woodstox-core@6.2.4</packageUrl>
     <cve>CVE-2022-40152</cve>
   </suppress>
+
+  <suppress until="2024-04-01">
+    <notes><![CDATA[
+      ]]>
+    </notes>
+    <cpe>cpe:2.3:a:apache:commons_compress:1.21:*:*:*:*:*:*:*</cpe>
+    <cve>CVE-2024-25710</cve>
+    <cve>CVE-2024-26308</cve>
+  </suppress>
+
 </suppressions>
