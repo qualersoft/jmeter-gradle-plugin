@@ -15,7 +15,7 @@ plugins {
   `jacoco-report-aggregation`
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
   id("io.gitlab.arturbosch.detekt") version "1.23.4"
-  id("org.owasp.dependencycheck") version "9.0.7"
+  id("org.owasp.dependencycheck") version "9.0.9"
 
   // documentation
   id("org.jetbrains.dokka") version "1.9.10"
@@ -129,10 +129,6 @@ gradlePlugin {
     tags.addAll("jmeter", "test", "performance")
   }
   testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
-}
-
-jacoco {
-  toolVersion = "0.8.11"
 }
 
 detekt {

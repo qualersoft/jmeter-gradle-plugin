@@ -211,6 +211,8 @@ jobs:
 
       - name: "Publish Report"
         uses: codecov/codecov-action@v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   publishSnapshot:
     runs-on: ubuntu-latest
