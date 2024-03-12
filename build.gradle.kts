@@ -18,7 +18,7 @@ plugins {
   id("org.owasp.dependencycheck") version "9.0.9"
 
   // documentation
-  id("org.jetbrains.dokka") version "1.9.10"
+  id("org.jetbrains.dokka") version "1.9.20"
   id("org.asciidoctor.jvm.convert") version "3.3.2"
 
   // publishing
