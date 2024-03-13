@@ -34,8 +34,7 @@ class CustomParallelExecutionConfigurationStrategy : ParallelExecutionConfigurat
       parallelism = maxThreads.get().coerceAtMost(parallelism)
     }
 
-    val poolSize = parallelism * 2
-    return CustomParallelExecutionConfiguration(parallelism, parallelism, poolSize, parallelism, KEEP_ALIVE_SECONDS)
+    return CustomParallelExecutionConfiguration(parallelism, parallelism, parallelism, parallelism, KEEP_ALIVE_SECONDS)
   }
 
   data class CustomParallelExecutionConfiguration(
