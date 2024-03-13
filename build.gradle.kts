@@ -51,7 +51,7 @@ testing {
         implementation("io.kotest:kotest-assertions-core:5.8.1")
         implementation(gradleTestKit())
 
-        implementation(platform("org.junit:junit-bom:5.10.1"))
+        implementation(platform("org.junit:junit-bom:5.10.2"))
         implementation("org.junit.platform:junit-platform-commons") {
           because(
             """we need to implement custom strategy
