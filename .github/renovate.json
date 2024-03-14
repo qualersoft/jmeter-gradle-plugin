@@ -1,6 +1,47 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
-  ]
+    "config:recommended"
+  ],
+  "labels": ["t:renovate", "quality"],
+  "packageRules": [
+    {
+      "description": "Keep major action updates as independent PR",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": "major",
+      "prBodyNotes": ["- [ ] Please check the release notes for deprecations and new features, and adopt them if applicable."]
+    },
+    {
+      "description": "Put all non-major action updates in one PR",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeStrategy": "fast-forward",
+      "groupName": "non-major gh-actions"
+    },
+    {
+      "description": "Put all non-major plugin updates in one PR",
+      "matchManagers": ["gradle"],
+      "matchPackagePatterns": ["^.+gradle[.-]plugin$"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeStrategy": "fast-forward",
+      "groupName": "non-major gradle plugins",
+      "addLabels": ["t:plugin"]
+    },
+    {
+      "description": "Keep major plugin updates as independent PR",
+      "matchManagers": ["gradle"],
+      "matchPackagePatterns": ["^.+gradle[.-]plugin$"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["t:plugin"],
+      "prBodyNotes": ["- [ ] Please check the release notes for deprecations and new features, and adopt them if applicable."]
+    }
+  ],
+  "github-actions": {
+    "addLabels": ["t:gh-actions"]
+  },
+  "gradle": {
+    "addLabels": ["t:gradle"]
+  }
 }
