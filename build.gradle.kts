@@ -1,5 +1,6 @@
 import de.qualersoft.parseSemVer
 import io.gitlab.arturbosch.detekt.Detekt
+import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.owasp.dependencycheck.gradle.extension.AnalyzerExtension
 import org.owasp.dependencycheck.gradle.extension.NvdExtension
@@ -144,6 +145,15 @@ dependencyCheck {
     Format.HTML.name,
     Format.SARIF.name
   )
+
+  scanConfigurations = configurations.filterIsInstance<DefaultUnlockedConfiguration>()
+    .map { it.name }
+    .filterNot {
+      it.contains("Plugin") ||
+          it.contains("dokka") ||
+          it.contains("detekt")
+    }
+
   analyzers(closureOf<AnalyzerExtension> {
     assemblyEnabled = false // requires 'dotnet' executable which is not present everywhere
     retirejs(closureOf<RetireJSExtension> {
