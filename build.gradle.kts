@@ -15,7 +15,7 @@ plugins {
   jacoco
   `jacoco-report-aggregation`
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
-  id("io.gitlab.arturbosch.detekt") version "1.23.5"
+  id("io.gitlab.arturbosch.detekt") version "1.23.6"
   id("org.owasp.dependencycheck") version "9.0.10"
 
   // documentation
