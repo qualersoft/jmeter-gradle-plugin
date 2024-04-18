@@ -36,7 +36,7 @@ jobs:
           category: detekt
 
       - name: "Upload detekt report"
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4.3.2
         if: success() || failure()
         with:
           name: detektReport
@@ -136,7 +136,7 @@ jobs:
           junit_files: build/test-results/**/*.xml
 
       - name: "Upload unit test report"
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4.3.2
         if: always()
         with:
           name: unitTestReport
@@ -175,7 +175,7 @@ jobs:
           junit_files: build/test-results/functionalTest/*.xml
 
       - name: "Upload functional test report"
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4.3.2
         if: always()
         with:
          name: functionalTestReport
