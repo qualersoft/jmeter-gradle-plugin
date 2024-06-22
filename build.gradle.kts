@@ -41,7 +41,7 @@ testing {
     val test by getting(JvmTestSuite::class) {
       useJUnitJupiter(junitVersion)
       dependencies {
-        implementation("io.kotest:kotest-assertions-core:5.8.1")
+        implementation("io.kotest:kotest-assertions-core:5.9.1")
       }
     }
 
@@ -49,7 +49,7 @@ testing {
       useJUnitJupiter(junitVersion)
       dependencies {
         implementation(project())
-        implementation("io.kotest:kotest-assertions-core:5.8.1")
+        implementation("io.kotest:kotest-assertions-core:5.9.1")
         implementation(gradleTestKit())
 
         implementation(platform("org.junit:junit-bom:5.10.2"))
