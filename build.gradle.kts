@@ -1,9 +1,9 @@
 import de.qualersoft.parseSemVer
 import io.gitlab.arturbosch.detekt.Detekt
 import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.owasp.dependencycheck.gradle.extension.AnalyzerExtension
-import org.owasp.dependencycheck.gradle.extension.NvdExtension
 import org.owasp.dependencycheck.gradle.extension.RetireJSExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
@@ -12,7 +12,6 @@ plugins {
   kotlin("jvm") version "2.0.0"
 
   // quality
-  jacoco
   `jacoco-report-aggregation`
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
@@ -36,20 +35,25 @@ repositories {
 
 @Suppress("UnstableApiUsage")
 testing {
-  val junitVersion = "5.10.1"
+  val junitVersion = "5.10.2"
+  val kotestVersion = "5.9.1"
   suites {
     val test by getting(JvmTestSuite::class) {
       useJUnitJupiter(junitVersion)
+
       dependencies {
-        implementation("io.kotest:kotest-assertions-core:5.9.1")
+        implementation("io.kotest:kotest-assertions-core:$kotestVersion")
       }
+
+      gradlePlugin.testSourceSet(sources)
     }
 
     register<JvmTestSuite>("functionalTest") {
       useJUnitJupiter(junitVersion)
+
       dependencies {
         implementation(project())
-        implementation("io.kotest:kotest-assertions-core:5.9.1")
+        implementation("io.kotest:kotest-assertions-core:$kotestVersion")
         implementation(gradleTestKit())
 
         implementation(platform("org.junit:junit-bom:5.10.2"))
@@ -70,18 +74,21 @@ testing {
       targets.all {
         testTask.configure {
           dependsOn(tasks.jar)
-          mustRunAfter(test)
+
+          shouldRunAfter(test)
           applyJacocoWorkaround()
+        }
+        tasks.check {
+          dependsOn(testTask)
         }
 
         jacocoTestKit {
           @Suppress("UNCHECKED_CAST")
           applyTo("functionalTestRuntimeOnly", testTask as TaskProvider<Task>)
         }
-        tasks.check {
-          dependsOn(testTask)
-        }
       }
+
+      gradlePlugin.testSourceSet(sources)
     }
   }
 }
@@ -113,9 +120,6 @@ reporting {
   }
 }
 
-// Add a source set for the functional test suite
-val functionalTestSourceSet: SourceSet = sourceSets.getByName("functionalTest")
-
 @Suppress("UnstableApiUsage")
 gradlePlugin {
   website.set("https://github.com/qualersoft/jmeter-gradle-plugin")
@@ -129,7 +133,6 @@ gradlePlugin {
     description = "Plugin to execute JMeter tests."
     tags.addAll("jmeter", "test", "performance")
   }
-  testSourceSets(sourceSets.test.get(), functionalTestSourceSet)
 }
 
 detekt {
@@ -161,9 +164,9 @@ dependencyCheck {
     })
     System.getenv().getOrDefault("NVD_API_KEY", findProperty("NVD_API_KEY"))?.also {
       if ((it as String).isNotBlank()) {
-        nvd(closureOf<NvdExtension> {
+        nvd.apply {
           apiKey = it
-        })
+        }
       }
     }
   })
@@ -189,8 +192,8 @@ changelog {
 tasks {
 
   withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-      jvmTarget = javaVersion.toString()
+    compilerOptions {
+      jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
     }
   }
 
@@ -209,21 +212,10 @@ tasks {
       sarif.required.set(true)
     }
   }
-  pluginUnderTestMetadata {
-    // https://discuss.gradle.org/t/how-to-make-gradle-testkit-depend-on-output-jar-rather-than-just-classes/18940/2
-    val gradlePlgExt = project.extensions.getByName<GradlePluginDevelopmentExtension>("gradlePlugin")
-    val additionalResources = pluginClasspath.files - files(
-      gradlePlgExt.pluginSourceSet.output.classesDirs,
-      gradlePlgExt.pluginSourceSet.output.resourcesDir
-    )
-    pluginClasspath.setFrom(
-      files(jar) + additionalResources
-    )
-    mustRunAfter(jar)
-  }
 
-  withType<Test>().configureEach {
-    useJUnitPlatform()
+  pluginUnderTestMetadata {
+    pluginClasspath.from(files(jar))
+    mustRunAfter(jar)
   }
 
   withType<JacocoReport> {

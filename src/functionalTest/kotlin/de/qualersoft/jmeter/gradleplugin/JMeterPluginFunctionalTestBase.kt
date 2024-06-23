@@ -6,6 +6,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.io.InputStream
+import java.lang.management.ManagementFactory
 import java.util.zip.ZipFile
 
 open class JMeterPluginFunctionalTestBase {
@@ -29,21 +30,26 @@ open class JMeterPluginFunctionalTestBase {
    */
   protected var rootFolder: () -> String? = { null }
 
-  protected fun setupTest(baseFileName: String, ext: String = "gradle.kts", debug: Boolean = false): GradleRunner {
+  protected fun setupTest(baseFileName: String, ext: String = "gradle.kts"): GradleRunner {
     copyTestFileToTemp(baseFileName, ext)
-    return createRunner(debug)
+    return createRunner()
   }
 
   protected fun runShouldFail(result: BuildResult, reason: String = "") {
     result.output shouldContain "FAILURE: $reason"
   }
 
-  private fun createRunner(debug: Boolean) = GradleRunner.create()
+  private fun createRunner() = GradleRunner.create()
     .withProjectDir(testProjectDir.root)
     .withPluginClasspath()
-    .withDebug(debug)
+    .withDebug(ManagementFactory.getRuntimeMXBean().inputArguments.toString().indexOf("-agentlib:jdwp") > 0)
     .withTestKitDir(testProjectDir.newFolder())
     .withJaCoCo()
+    .also {
+      if (it.isDebug) {
+        it.forwardOutput()
+      }
+    }
 
   /**
    * Copies a jmx-file from `resource` to the default location.
@@ -91,7 +97,7 @@ open class JMeterPluginFunctionalTestBase {
     }
 
     val settings = testProjectDir.newFile("settings.$ext")
-    settings.writeText("")
+    settings.writeText("""rootProject.name = "$resource"""")
 
     return result
   }

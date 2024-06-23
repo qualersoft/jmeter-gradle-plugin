@@ -124,9 +124,7 @@ jobs:
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
-          arguments: |
-            test
-            jacocoTestReport
+          arguments: test
 
       - name: "Publish Unit Test Results"
         uses: EnricoMi/publish-unit-test-result-action@v2.16.1

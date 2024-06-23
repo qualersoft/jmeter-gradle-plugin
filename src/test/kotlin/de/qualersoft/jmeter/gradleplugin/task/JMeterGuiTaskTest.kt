@@ -180,6 +180,15 @@ class JMeterGuiTaskTest : JMeterTaskTestBase() {
     (result as JMeterGuiTask).jmxFile.get() shouldBe "test.jmx"
   }
 
+  @Test
+  fun `should never be up-to-date`() {
+    val task = createTask<JMeterGuiTask>().get()
+
+    val result = task.outputs.upToDateSpec.isSatisfiedBy(task)
+
+    result shouldBe false
+  }
+
   private fun createProject() = ProjectBuilder.builder().build()
     .also {
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
