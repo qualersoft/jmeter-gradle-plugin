@@ -121,9 +121,8 @@ open class JMeterRunTask : JMeterExecBaseTask() {
 
   @Option(option = "PP", description = "proxy server port")
   fun setProxyPort(port: String) {
-    port.toIntOrNull()?.let {
-      proxyPort.value(it)
-    } ?: throw IllegalArgumentException("Port must be a valid number! Got >$port<.")
+    val iPort = checkNotNull(port.toIntOrNull()) { "Port must be a valid number! Got >$port<." }
+    proxyPort.set(iPort)
   }
 
   /**

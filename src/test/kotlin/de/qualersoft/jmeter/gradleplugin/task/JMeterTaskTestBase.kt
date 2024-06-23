@@ -22,7 +22,7 @@ open class JMeterTaskTestBase {
     }.tasks.register(T::class.simpleName!!, T::class.java, taskConfig)
   }
 
-  protected inline fun <reified T : Task> createTask(config: JMeterExtension.() -> Unit): TaskProvider<T> {
+  protected inline fun <reified T : Task> createTask(config: JMeterExtension.() -> Unit = {}): TaskProvider<T> {
     return ProjectBuilder.builder().build().also {
       project = it
       it.plugins.apply(PluginTestBase.PLUGIN_ID)
