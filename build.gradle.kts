@@ -24,7 +24,7 @@ plugins {
   // publishing
   signing
   id("com.gradle.plugin-publish") version "1.2.1"
-  id("org.jetbrains.changelog") version "2.2.0"
+  id("org.jetbrains.changelog") version "2.2.1"
 }
 
 group = "de.qualersoft"
