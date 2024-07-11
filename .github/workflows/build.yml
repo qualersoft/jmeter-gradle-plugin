@@ -127,7 +127,7 @@ jobs:
           arguments: test
 
       - name: "Publish Unit Test Results"
-        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+        uses: EnricoMi/publish-unit-test-result-action@v2.17.0
         if: always()
         with:
           check_name: "Unit test results"
@@ -166,7 +166,7 @@ jobs:
           arguments: functionalTest
 
       - name: "Publish functional test results"
-        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+        uses: EnricoMi/publish-unit-test-result-action@v2.17.0
         if: always()
         with:
           check_name: "Functional test results"
