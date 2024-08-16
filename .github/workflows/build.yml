@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: "Detekt"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
@@ -78,7 +78,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: "Compile"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           arguments: jar
@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: "Validate plugin"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           arguments: validatePlugins
@@ -120,7 +120,7 @@ jobs:
           key: ${{ runner.os }}-jacoco-unitTest-${{ github.run_id }}
 
       - name: "Unit test"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
@@ -159,7 +159,7 @@ jobs:
           key: ${{ runner.os }}-jacoco-functionalTest-${{ github.run_id }}
 
       - name: "Execute Functional tests"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
@@ -201,7 +201,7 @@ jobs:
           key: ${{ runner.os }}-jacoco-functionalTest-${{ github.run_id }}
 
       - name: "Create coverage report"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         with:
           remote-build-cache-proxy-enabled: false
           save-local-build-cache: false
@@ -234,7 +234,7 @@ jobs:
           key: ${{ runner.os }}-compile-${{ github.run_id }}
 
       - name: "Publish snapshot to github"
-        uses: burrunan/gradle-cache-action@v1
+        uses: burrunan/gradle-cache-action@v2
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ github.token }}
