@@ -9,13 +9,13 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
   // implementation
-  kotlin("jvm") version "2.0.10"
+  kotlin("jvm") version "2.0.21"
 
   // quality
   `jacoco-report-aggregation`
   id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
-  id("io.gitlab.arturbosch.detekt") version "1.23.6"
-  id("org.owasp.dependencycheck") version "10.0.3"
+  id("io.gitlab.arturbosch.detekt") version "1.23.7"
+  id("org.owasp.dependencycheck") version "10.0.4"
 
   // documentation
   id("org.jetbrains.dokka") version "1.9.20"
@@ -23,7 +23,7 @@ plugins {
 
   // publishing
   signing
-  id("com.gradle.plugin-publish") version "1.2.1"
+  id("com.gradle.plugin-publish") version "1.3.0"
   id("org.jetbrains.changelog") version "2.2.1"
 }
 
