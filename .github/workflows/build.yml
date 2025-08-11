@@ -19,7 +19,7 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Detekt"
         uses: burrunan/gradle-cache-action@v2
@@ -52,7 +52,7 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Fossa analyze"
         uses: fossas/fossa-action@v1
@@ -75,7 +75,7 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Compile"
         uses: burrunan/gradle-cache-action@v2
@@ -93,7 +93,7 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Validate plugin"
         uses: burrunan/gradle-cache-action@v2
@@ -111,10 +111,10 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Unit test coverage cache"
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4.2.4
         with:
           path: ${{ github.workspace }}/build/jacoco/**
           key: ${{ runner.os }}-jacoco-unitTest-${{ github.run_id }}
@@ -150,10 +150,10 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Functional test coverage cache"
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4.2.4
         with:
           path: ${{ github.workspace }}/build/jacoco/**
           key: ${{ runner.os }}-jacoco-functionalTest-${{ github.run_id }}
@@ -186,16 +186,16 @@ jobs:
       - functionalTest
     steps:
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Load unit test coverage cache"
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4.2.4
         with:
           path: ${{ github.workspace }}/build/jacoco/**
           key: ${{ runner.os }}-jacoco-unitTest-${{ github.run_id }}
 
       - name: "Load functional test coverage cache"
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4.2.4
         with:
           path: ${{ github.workspace }}/build/jacoco/**
           key: ${{ runner.os }}-jacoco-functionalTest-${{ github.run_id }}
@@ -225,10 +225,10 @@ jobs:
           java-version: '21'
 
       - name: "Check out sources"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: "Load compile cache"
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4.2.4
         with:
           path: ${{ github.workspace }}/build/**
           key: ${{ runner.os }}-compile-${{ github.run_id }}
