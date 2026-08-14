@@ -79,7 +79,7 @@ class JMeterConfig(private val project: Project) {
    */
   fun applyTo(config: Configuration) {
     config.dependencies.add(createJMeterLibDependency())
-    val toolConfigDepNot = createToolConfigDependencyNotion()
+    val toolConfigDepNot = jmeterDependencyNotation("config")
     val toolConfigDep = project.dependencies.create(toolConfigDepNot)
     config.dependencies.add(applyBomWorkaround(toolConfigDep))
   }
@@ -89,7 +89,7 @@ class JMeterConfig(private val project: Project) {
       "bolt", "components", "core", "ftp", "functions", "http", "java", "jdbc", "jms", "junit", "ldap",
       "mail", "mongodb", "native", "tcp"
     ).forEach {
-      val depNot = jmeterDependency(it)
+      val depNot = jmeterDependencyNotation(it)
       val dep = project.dependencies.create(depNot)
       logger.debug("Adding dependency for {}", dep)
       config.dependencies.add(applyBomWorkaround(dep))
@@ -117,13 +117,13 @@ class JMeterConfig(private val project: Project) {
     return dependency
   }
 
-  private fun createToolDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
-    res["group"] = group
-    res["name"] = name
-    res["version"] = version
-  }
+  private fun createToolDependencyNotation(): String = "$group:$name:$version"
 
-  fun createToolConfigDependencyNotion(): Map<String, String> = jmeterDependency("config")
+  fun createToolConfigDependencyNotion(): Map<String, String> = mapOf(
+    "group" to group,
+    "name" to "ApacheJMeter_config",
+    "version" to version
+  )
 
   /**
    * Creates a dependency notation for a jmeter core extension where group is [group].
@@ -131,9 +131,6 @@ class JMeterConfig(private val project: Project) {
    * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
    * @param version The version to use, defaults to [JMeterConfig.version]
    */
-  fun jmeterDependency(name: String, version: String = this.version) = mutableMapOf<String, String>().also {
-    it["group"] = group
-    it["name"] = "ApacheJMeter_$name"
-    it["version"] = version
-  }
+  private fun jmeterDependencyNotation(name: String, version: String = this.version): String =
+    "$group:ApacheJMeter_$name:$version"
 }
