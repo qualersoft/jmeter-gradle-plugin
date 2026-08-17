@@ -80,7 +80,8 @@ open class JMeterSetupTask : DefaultTask() {
       .resolvedArtifacts
 
     val toolConfNot = jmTool.createToolConfigDependencyNotion()
-    val toolConfName = toolConfNot["name"]!!
+    // since gradle prefers single-string coordinates notation we need to extract 'name' part
+    val toolConfName = toolConfNot.split(":")[1]
     return findArtifactMatch(artifacts, jmTool.group, toolConfName)
   }
 
