@@ -117,13 +117,9 @@ class JMeterConfig(private val project: Project) {
     return dependency
   }
 
-  private fun createToolDependencyNotation(): Map<String, String> = mutableMapOf<String, String>().also { res ->
-    res["group"] = group
-    res["name"] = name
-    res["version"] = version
-  }
+  private fun createToolDependencyNotation(): String = "$group:$name:$version"
 
-  fun createToolConfigDependencyNotion(): Map<String, String> = jmeterDependency("config")
+  fun createToolConfigDependencyNotion(): String = jmeterDependency("config")
 
   /**
    * Creates a dependency notation for a jmeter core extension where group is [group].
@@ -131,9 +127,5 @@ class JMeterConfig(private val project: Project) {
    * @param name The name of the extension. The `ApacheJMeter_` will be prepended.
    * @param version The version to use, defaults to [JMeterConfig.version]
    */
-  fun jmeterDependency(name: String, version: String = this.version) = mutableMapOf<String, String>().also {
-    it["group"] = group
-    it["name"] = "ApacheJMeter_$name"
-    it["version"] = version
-  }
+  fun jmeterDependency(name: String, version: String = this.version): String = "$group:ApacheJMeter_$name:$version"
 }

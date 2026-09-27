@@ -94,16 +94,17 @@ testing {
 }
 
 dependencies {
-  // Align versions of all Kotlin components
-  implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+  implementation(platform("org.jetbrains.kotlin:kotlin-bom")) {
+    because("We want to align version of all kotlin components")
+  }
 
   testRuntimeOnly(kotlin("script-runtime"))
 
   // quality
-  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version = detekt.toolVersion) {
+  detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${detekt.toolVersion}") {
     because("We also want to check formatting issues.")
   }
-  detektPlugins(group = "io.gitlab.arturbosch.detekt", name = "detekt-rules-libraries", version = detekt.toolVersion)
+  detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:${detekt.toolVersion}")
 }
 
 @Suppress("UnstableApiUsage")
@@ -115,6 +116,10 @@ reporting {
           .mapNotNull { it.extensions.findByType<JacocoTaskExtension>()?.destinationFile }
         executionData.from(allJacocoTasksData)
         testType = "aggregated"
+        doLast {
+          val fileUri = reports.html.entryPoint.toPath().toUri()
+          logger.lifecycle("Coverage Report {}", fileUri)
+        }
       }
     }
   }
@@ -257,6 +262,7 @@ signing {
 @Suppress("PropertyName", "VariableNaming")
 val KINDS = listOf("major", "minor", "patch", "snapshot")
 tasks.register("nextVersion") {
+  description = "Generates a new version depending on the given version update kind."
   doLast {
     val kind = getKind(this)
     val semVer = parseSemVer(project.version.toString())

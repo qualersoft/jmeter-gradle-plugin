@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 - ⚠️Default jmeter version is now 5.5⚠️  
   Please refer to https://jmeter.apache.org/changes.html for potential breaking changes
+- Lookup of dependencies now uses single-string coordinate format (#297).
 
 ## [2.4.0]
 ### Added
